@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:id="@+id/MainGroup"
+        android:checkableBehavior="single">
+        <!--<item-->
+            <!--andridd:idid@+id/nav_dashboard"-->
+            <!--android:icon="@drawable/ic_dashboard"-->
+            <!--android:title="Dashboard" />-->
+        <item
+            android:id="@+id/nav_absensi"
+            android:icon="@drawable/ic_presensi_book"
+            android:title="@string/title_activity_presensi" />
+    </group>
+    <group
+        android:id="@+id/SlaveGroup"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_logout"
+            android:title="Logout" />
+        <item
+            android:id="@+id/nav_contactdev"
+            android:icon="@drawable/ic_help_circle"
+            android:title="Contact Developer" />
+    </group>
+
+</menu>

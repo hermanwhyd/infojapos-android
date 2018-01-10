@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/mn_hadir"
+        android:title="Hadir"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/mn_izin"
+        android:title="Izin"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/mn_alpa"
+        android:title="Alpa"
+        app:showAsAction="ifRoom|withText" />
+
+</menu>

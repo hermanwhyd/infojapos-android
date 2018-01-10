@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#0091EA</color>
+    <color name="colorPrimaryDark">#40C4FF</color>
+    <color name="colorPrimaryDarker">#00B0FF</color>
+    <color name="colorAccent">#ff0f93</color>
+    <color name="accent_translucent">#33000000</color>
+    <color name="colorPrimaryTrans">#BF81D4FA</color>
+    <color name="white">#FFF</color>
+
+    <color name="item_checkicon_background">#BF9E9E9E</color>
+    <color name="item_selected_background">#81D4FA</color>
+    <color name="item_selected_press">@color/colorPrimaryTrans</color>
+    <color name="item_background">#FFF</color>
+    <color name="rc_backgraund">#f5f5f5</color>
+    <color name="divider">#CCC</color>
+    <color name="border_color">#0091EA</color>
+    <color name="text_color">#0091EA</color>
+    <color name="text_sub_gray">#9E9E9E</color>
+
+    <!--Snackbar-->
+    <color name="success_snackbar">@color/colorPrimaryDark</color>
+    <color name="error_snackbar">#FF3D00</color>
+
+    <!--swipe-->
+    <color name="swipe_left">#00E676</color>
+    <color name="swipe_right">#FF9100</color>
+</resources>

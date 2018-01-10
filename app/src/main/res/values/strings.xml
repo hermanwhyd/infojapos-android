@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Info Japos</string>
+
+    <!--notif-->
+    <string name="list_updated">List telah diperbaharui</string>
+
+    <!--setting-->
+    <string name="urlwa">https://api.whatsapp.com/send?phone=6285279335312</string>
+
+    <!-- labels -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="title_activity_jadwal">Jadwal KBM</string>
+    <string name="title_activity_presensi">Presensi KBM</string>
+
+    <!--text view-->
+    <string name="kbm_noresult">Tidak ada jadwal KBM di tanggal ini</string>
+    <string name="kbm_error">Tarik kebawah untuk update list</string>
+    <string name="presensi_noresult">Kelas ini tidak memiliki peserta</string>
+    <string name="presensi_error">Tarik kebawah untuk update list</string>
+
+    <!--Button Navigation Titles-->
+    <string name="title_bnav_axel2">AXEL2</string>
+    <string name="title_bnav_axel3">AXEL3</string>
+    <string name="title_bnav_tahfidz">TAHFIDZ</string>
+
+    <!--Dialog-->
+    <string name="progress_authenticating_dialog">Authenticating...</string>
+    <string name="progress_connecting_dialog">Connecting Server</string>
+    <string name="please_wait">Mohon tunggu...</string>
+    <string name="progress_registering_dialog">Registering...</string>
+
+    <!--Message-->
+    <string name="network_error">Network error, silakan cek koneksi internet Anda</string>
+    <string name="presensi_success">%1$s berhasil ditandai %2$s</string>
+    <string name="presensi_batch_success">%1$s dan %2$d lainnya berhasil ditandai %3$s</string>
+
+    <!--solving rendering problems-->
+    <item name="visible" type="id" />
+    <item name="masked" type="id" />
+</resources>

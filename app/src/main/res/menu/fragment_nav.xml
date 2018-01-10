@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/bnav_axel2"
+        android:title="@string/title_bnav_axel2"/>
+
+    <item
+        android:id="@+id/bnav_axel3"
+        android:title="@string/title_bnav_axel3"/>
+
+    <item
+        android:id="@+id/bnav_tahfidz"
+        android:title="@string/title_bnav_tahfidz"/>
+
+</menu>
+

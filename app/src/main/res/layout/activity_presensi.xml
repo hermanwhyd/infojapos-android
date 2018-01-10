@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activities.PresensiActivity">
+
+    <info.japos.utils.BabushkaText
+        android:id="@+id/presensi_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:textAlignment="center"
+        android:text="kelas NA\npada NA"
+        android:background="@color/white"
+        android:padding="5dp"
+        />
+
+    <TextView
+        android:id="@+id/tv_prolog_presensi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:gravity="center_horizontal"
+        android:paddingBottom="@dimen/default_margin"
+        android:padding="5dp"
+        android:background="@color/white"
+        android:text="Silakan update keterangan (Hadir/Izin/Alpa) setiap peserta KBM"/>
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_presensi"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="5dp">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/tv_no_peserta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="@string/presensi_noresult"
+                android:textSize="15sp"
+                android:visibility="gone" />
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_presensi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                />
+        </FrameLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+</LinearLayout>

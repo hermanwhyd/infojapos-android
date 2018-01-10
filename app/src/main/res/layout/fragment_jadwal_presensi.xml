@@ -1,0 +1,80 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="info.japos.pp.fragments.JadwalPresensiFragment"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <TextView
+        android:id="@+id/tv_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="34sp"
+        android:labelFor="@id/et_tanggalkbm"
+        android:gravity="center_horizontal"
+        android:text="Jadwal KBM" />
+
+    <TextView
+        android:id="@+id/tv_subheader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/et_tanggalkbm"
+        android:layout_marginTop="@dimen/default_margin"
+        android:textSize="12sp"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/tv_header"
+        android:text="Silakan pilih tanggal KBM sebelum mulai input data absensi" />
+
+    <EditText
+        android:id="@+id/et_tanggalkbm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_subheader"
+        android:layout_centerHorizontal="true"
+        android:drawableLeft="@drawable/ic_action_date"
+        android:drawableStart="@drawable/ic_action_date"
+        android:ems="10"
+        android:focusable="false"
+        android:inputType="date"
+        android:textColor="@color/text_color" />
+
+    <!-- Content -->
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_jadwal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/et_tanggalkbm"
+        android:layout_above="@+id/btn_submit_pp">
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <TextView
+                    android:id="@+id/tv_no_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="15sp"
+                    android:gravity="center_horizontal"
+                    android:text="@string/kbm_noresult"
+                    android:visibility="gone"/>
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv_kelasjadwal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"/>
+            </FrameLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <Button
+        android:id="@+id/btn_submit_pp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimaryDark"
+        android:textColor="@color/white"
+        android:enabled="false"
+        android:alpha="0.5"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Next" />
+
+</RelativeLayout>
