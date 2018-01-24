@@ -14,9 +14,7 @@
 
         <FrameLayout
             android:layout_width="@dimen/item_height"
-            android:layout_height="@dimen/item_height"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp">
+            android:layout_height="@dimen/item_height">
 
             <ImageView
                 android:id="@+id/image_view"
@@ -26,8 +24,8 @@
 
             <ImageView
                 android:id="@+id/check_icon"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:layout_width="@dimen/item_height"
+                android:layout_height="@dimen/item_height"
                 android:background="@color/item_checkicon_background"
                 android:contentDescription="Checklist if selected, overide image_view below"
                 android:src="@drawable/ic_check"
@@ -38,6 +36,8 @@
         <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
             android:layout_width="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="@dimen/default_margin"
             android:layout_height="@dimen/item_height">
 
             <TextView

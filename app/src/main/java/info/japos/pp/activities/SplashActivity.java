@@ -25,7 +25,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Session manager
-        session = new SessionManager(getApplicationContext());
+        session = new SessionManager(this.getApplication());
 
         // set locale set on device
         Locale locale = getResources().getConfiguration().locale;

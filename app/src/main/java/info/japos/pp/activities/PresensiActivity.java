@@ -3,6 +3,7 @@ package info.japos.pp.activities;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -63,10 +66,15 @@ import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 public class PresensiActivity extends AppCompatActivity implements PresensiViewAdapter.OnItemSelectedListener, SwipeRefreshLayout.OnRefreshListener {
     private static final String TAG = PresensiActivity.class.getSimpleName();
 
-    @BindView(R.id.rv_presensi) RecyclerView presensiView;
-    @BindView(R.id.swipe_refresh_presensi) SwipeRefreshLayout swipeRefreshPresensi;
-    @BindView(R.id.presensi_header) BabushkaText presensiHeader;
-    @BindView(R.id.tv_no_peserta) TextView tvNoResult;
+    @BindView(R.id.rv_presensi)
+    RecyclerView presensiView;
+    @BindView(R.id.swipe_refresh_presensi)
+    SwipeRefreshLayout swipeRefreshPresensi;
+    @BindView(R.id.presensi_header)
+    BabushkaText presensiHeader;
+    @BindView(R.id.tv_no_peserta)
+    TextView tvNoResult;
+    @BindView(R.id.tv_prolog_presensi) TextView tvPrologPresensi;
     private LinearLayoutManager linearLayoutManager;
     private PresensiViewAdapter presensiAdapter;
     private Presensi presensi;
@@ -74,10 +82,10 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     private Jadwal iJadwal;
     private String iTimestamp;
     private List<String> izinReasons = new ArrayList<>(0);
-    private EnumsRepository enumsRepository = new EnumsRepository();
     private SwipeToAction swipeToAction;
     private Vibrator mVibrator;
     private boolean isFirstLoad = Boolean.TRUE;
+    private int idxListSorting = 0;
 
     // Showcase config
     private static final String SHOWCASE_ID = "PresensiShowCase";
@@ -106,7 +114,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         swipeRefreshPresensi.setColorSchemeColors(Color.CYAN, Color.YELLOW, Color.BLUE);
 
         // Session
-        sessionManager = new SessionManager(this);
+        sessionManager = new SessionManager(this.getApplication());
 
         // init recycler
         linearLayoutManager = new LinearLayoutManager(this);
@@ -120,10 +128,11 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         initIntentHandler();
 
         // iterate enums izin alasan
-        RealmResults<Enums> enums = enumsRepository.getEnumsByGrup(AppConstant.ENUM_IZIN_ALASAN);
+        RealmResults<Enums> enums = EnumsRepository.with(this).getEnumsByGrup(AppConstant.ENUM_IZIN_ALASAN);
         for (Enums anEnum : enums) {
             izinReasons.add(anEnum.getValue());
         }
+        Log.d(TAG, "Enums from db: " + GsonUtil.getInstance().toJson(izinReasons));
 
         // Create Vibrator instance for current context
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -141,11 +150,21 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.presensi_menu, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             // Respond to the action bar's Up/Home button
             case android.R.id.home:
                 onBackPressed();
+                return true;
+            case R.id.mn_presensi_sortby:
+                onSortByPressed();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -171,7 +190,8 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
             @Override
             public void onBlur(SwipeToAction.ViewHolder viewHolder, Peserta itemData) {
                 Log.d(TAG, "Item Recycler Blur");
-                if (swipeToAction.isInMultipleSelectionMode()) onListItemSelected(viewHolder, itemData);
+                if (swipeToAction.isInMultipleSelectionMode())
+                    onListItemSelected(viewHolder, itemData);
 //                presensiAdapter.togglePressedState((PresensiViewAdapter.PresensiViewHolder) viewHolder, Boolean.FALSE);
             }
 
@@ -218,7 +238,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         iTimestamp = i.getStringExtra("TIMESTAMP");
 
         Date date = Utils.parseApiDate(iTimestamp);
-        presensiHeader.addPiece(new BabushkaText.Piece(new BabushkaText.Piece.Builder("Kelas " + iJadwal.getKelas()).textSize(75).style(Typeface.BOLD).textColor(Utils.getColor(this, R.color.text_color))));
+        presensiHeader.addPiece(new BabushkaText.Piece(new BabushkaText.Piece.Builder("Kelas " + iJadwal.getKelas()).textSize(45).style(Typeface.BOLD).textColor(Utils.getColor(this, R.color.text_color))));
         presensiHeader.addPiece(new BabushkaText.Piece(new BabushkaText.Piece.Builder("\n" + Utils.formatDate(date)).textSizeRelative(0.9f).textColor(Utils.getColor(this, R.color.text_sub_gray))));
         presensiHeader.display();
     }
@@ -226,15 +246,24 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     /**
      * /**
      * Update keterangan izin presensi
+     *
      * @param presensi
      * @param peserta
      */
     private void updateKetAlasanPresensi(Presensi presensi, Peserta peserta) {
         // radiobutton alasan yang sudah tercentang
+        if (this.izinReasons.isEmpty()) {
+            Resources res = getResources();
+            String[] reason = res.getStringArray(R.array.izin_alasan);
+            for (String alasan : reason) {
+                this.izinReasons.add(alasan);
+            }
+        }
+
         Integer idxChecked = this.izinReasons.isEmpty()
                 ? -1 : (peserta.getAlasan() == null
-                        ? 0 : izinReasons.indexOf(peserta.getAlasan()) > -1
-                                ? izinReasons.indexOf(peserta.getAlasan()) : 0);
+                ? 0 : izinReasons.indexOf(peserta.getAlasan()) > -1
+                ? izinReasons.indexOf(peserta.getAlasan()) : 0);
 
         Log.d(TAG, "Index Reason: " + idxChecked);
 
@@ -260,6 +289,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     /**
      * Update keterangan (HASI) presensi
+     *
      * @param presensi
      * @param peserta
      * @param ket
@@ -275,12 +305,13 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     }
 
     private void updateAllSelectedItem(final PresensiKet ket) {
-        Log.d(TAG, "Selected : " +  GsonUtil.getInstance().toJson(presensiAdapter.getSelectedPeserta()));
+        Log.d(TAG, "Selected : " + GsonUtil.getInstance().toJson(presensiAdapter.getSelectedPeserta()));
         updateKetPresensi(presensi, presensiAdapter.getSelectedPeserta(), ket);
     }
 
     /**
      * Update keterangan (HASI) presensi
+     *
      * @param presensi
      * @param pesertaList
      * @param ket
@@ -306,7 +337,6 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
             public void onResponse(Call<CommonResponse> call, Response<CommonResponse> response) {
                 swipeRefreshPresensi.setRefreshing(Boolean.FALSE);
                 if (response.isSuccessful() && response.code() == 200) {
-                    finishActionMode();
                     showSuccessUpdateSnackbar(pesertaList, ket);
                     presensiAdapter.notifyDataSetChanged();
                 } else {
@@ -316,11 +346,16 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                         case 401:
                             Toast.makeText(PresensiActivity.this, commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
                             break;
+                        case 403:
+                            Toast.makeText(PresensiActivity.this, commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            break;
                         case 500:
                             Toast.makeText(PresensiActivity.this, "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
                             break;
                         default:
-                            Toast.makeText(PresensiActivity.this, "Terjadi kesalahan yang tidak diketahui", Toast.LENGTH_SHORT).show();
+                            String message = (commonResponse != null && commonResponse.getMessage() != null && !commonResponse.getMessage().equalsIgnoreCase(""))
+                                    ? commonResponse.getMessage() : "Terjadi kesalahan yang tidak diketahui";
+                            Toast.makeText(PresensiActivity.this, message, Toast.LENGTH_SHORT).show();
                             break;
                     }
                 }
@@ -337,7 +372,8 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     /**
      * Mengambil data siswa ke server dengan jadwal id 'jadwalID' dan tanggal Presensi 'datePresence'
-     * @param jadwal Object Jadwal
+     *
+     * @param jadwal    Object Jadwal
      * @param timestamp String date dengan format dd-MM-yyyy, adalah tanggal presensi
      */
     private void populateStudents(final Jadwal jadwal, String timestamp) {
@@ -363,7 +399,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                         Log.i(TAG, "Response: " + GsonUtil.getInstance().toJson(presensi, Presensi.class));
                         pesertaList.clear();
                         pesertaList.addAll(presensi.getListPeserta());
-                        presensiAdapter.notifyDataSetChanged();
+                        sortPesertaList();
                         tvNoResult.setText(R.string.presensi_noresult);
                         tvNoResult.setVisibility(pesertaList.size() == 0 ? View.VISIBLE : View.GONE);
 
@@ -399,7 +435,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     @Override
     public void onPresensiSelected(Peserta peserta) {
-        Log.i(TAG,"Item selected: " + GsonUtil.getInstance().toJson(peserta));
+        Log.i(TAG, "Item selected: " + GsonUtil.getInstance().toJson(peserta));
     }
 
     @Override
@@ -419,7 +455,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     // close Action Mode
     public void finishActionMode() {
-        if (mActionMode!= null) mActionMode.finish();
+        if (mActionMode != null) mActionMode.finish();
     }
 
     //Set action mode null after use
@@ -457,6 +493,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     /**
      * Tandai semua item yang dipilih sesuai @param 'ket'
+     *
      * @param ket
      */
     public void markAllSelected(PresensiKet ket) {
@@ -469,10 +506,56 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                 .show();
     }
 
+    /**
+     * Function called when menu sortby pressed
+     */
+    private void onSortByPressed() {
+        Resources res = getResources();
+        List<String> sortByList = Arrays.asList(res.getStringArray(R.array.presensi_sortby));
+
+        new MaterialDialog.Builder(PresensiActivity.this)
+                .title("Urutkan List Peserta")
+                .items(sortByList)
+                .itemsCallbackSingleChoice(
+                        idxListSorting,
+                        (dialog, view, which, text) -> {
+                            idxListSorting = which;
+                            sortPesertaList();
+                            return true; // allow selection
+                        })
+                .onNegative((dialog, which) -> dialog.dismiss())
+                .onPositive((dialog, which) -> dialog.dismiss())
+                .positiveText("Urutkan")
+                .negativeText("Batal")
+                .autoDismiss(true)
+                .show();
+    }
+
+    /**
+     * Sort peserta by selected menu sort order
+     * idxList is index of resource array 'presensi_sortby'
+     */
+    private void sortPesertaList() {
+        Log.d(TAG, "Sort pesertaList, idxListSorting: " + idxListSorting);
+        Peserta[] pesertaArr = pesertaList.toArray(new Peserta[pesertaList.size()]);
+        if (idxListSorting == 1)
+            Arrays.sort(pesertaArr, Peserta.NicknameComparator);
+        else if (idxListSorting == 2)
+            Arrays.sort(pesertaArr, Peserta.KelompokComparator);
+        else if (idxListSorting == 3)
+            Arrays.sort(pesertaArr, Peserta.GenderComparator);
+        else
+            Arrays.sort(pesertaArr, Peserta::compareTo);
+
+        pesertaList.clear();
+        pesertaList.addAll(Arrays.asList(pesertaArr));
+        presensiAdapter.notifyDataSetChanged();
+    }
+
     @Override
     public void onBackPressed() {
         // jika tidak null, berarti pernah digunakan
-        if(mCallUpdPresensi != null) {
+        if (mCallUpdPresensi != null) {
             Intent i = new Intent();
             i.putExtra(JadwalPresensiFragment.EXTRA_KEY_ANY_CHANGES, Boolean.TRUE);
             setResult(Activity.RESULT_OK, i);
@@ -498,8 +581,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         // add squence items
         sequence.addSequenceItem(
                 new MaterialShowcaseView.Builder(this)
-                        .setTarget(tvNoResult)
+                        .setTarget(tvPrologPresensi)
                         .setDismissText("Mulai")
+                        .setDismissOnTouch(Boolean.TRUE)
                         .setContentText("Geser kanan atau kiri di item peserta untuk memberikan status kehadiran (Hadir/Alpa/Izin). Bisa juga multi pilihan dengan tekang dan tahan lalu pilih peserta lain dengan tekan pada item peserta, setelah selesai untuk set status kehadiran terdapat menu pilihan di pojok kanan atas aplikasi. Khusus untuk status kehadiran IZIN, akan ada popup alasan izin")
                         .withRectangleShape(true)
                         .setDismissStyle(Typeface.DEFAULT_BOLD)

@@ -2,18 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="info.japos.pp.fragments.JadwalPresensiFragment"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    >
-
-    <TextView
-        android:id="@+id/tv_header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="34sp"
-        android:labelFor="@id/et_tanggalkbm"
-        android:gravity="center_horizontal"
-        android:text="Jadwal KBM" />
+    tools:context="info.japos.pp.fragments.JadwalPresensiFragment">
 
     <TextView
         android:id="@+id/tv_subheader"
@@ -23,7 +12,6 @@
         android:layout_marginTop="@dimen/default_margin"
         android:textSize="12sp"
         android:gravity="center_horizontal"
-        android:layout_below="@+id/tv_header"
         android:text="Silakan pilih tanggal KBM sebelum mulai input data absensi" />
 
     <EditText

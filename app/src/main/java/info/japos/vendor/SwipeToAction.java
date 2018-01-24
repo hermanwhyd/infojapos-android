@@ -114,10 +114,10 @@ public class SwipeToAction {
 
                         // if in hold state
                         if (touchedView != null) {
-                            if (!inMultipleSelectionMode) {
-                                handlerItemPress = new Handler();
-                                handlerItemPress.postDelayed(runnableItemPress, LONG_PRESS_TIME);
-                            } else {
+                            handlerItemPress = new Handler();
+                            handlerItemPress.postDelayed(runnableItemPress, LONG_PRESS_TIME);
+
+                            if (inMultipleSelectionMode) {
                                 swipeListener.onPress(touchedViewHolder, touchedViewHolder.getItemData());
                             }
                         } else {

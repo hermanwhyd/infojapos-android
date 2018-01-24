@@ -1,13 +1,17 @@
 package info.japos.pp.models;
 
+import android.support.annotation.NonNull;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.Comparator;
 
 /**
  * Created by HWAHYUDI on 06-Dec-17.
  */
 
-public class Peserta {
+public class Peserta implements Comparable<Peserta>{
 
     @SerializedName("jamaah_id")
     @Expose
@@ -27,6 +31,9 @@ public class Peserta {
     @SerializedName("alasan")
     @Expose
     private String alasan;
+    @SerializedName("jenis_kelamin")
+    @Expose
+    private String gender;
 
     public Peserta() {
     }
@@ -74,6 +81,59 @@ public class Peserta {
     public String getAlasan() { return alasan; }
 
     public void setAlasan(String alasan) { this.alasan = alasan; }
+
+    public String getGender() {
+        if (gender != null) {
+            return gender.equalsIgnoreCase("L") ? "Laki-laki" : "Perempuan";
+        }
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    @Override
+    public int compareTo(@NonNull Peserta peserta2) {
+        String fullName1 = getNamaLengkap().toUpperCase();
+        String fullName2 = peserta2.getNamaLengkap().toUpperCase();
+
+        // ascending order
+        return fullName1.compareTo(fullName2);
+    }
+
+    public static Comparator<Peserta> NicknameComparator = new Comparator<Peserta>() {
+        @Override
+        public int compare(Peserta peserta1, Peserta peserta2) {
+            String prop1 = peserta1.getNamaPanggilan().toUpperCase();
+            String prop2 = peserta2.getNamaPanggilan().toUpperCase();
+
+            // ascending order
+            return prop1.compareTo(prop2);
+        }
+    };
+
+    public static Comparator<Peserta> KelompokComparator = new Comparator<Peserta>() {
+        @Override
+        public int compare(Peserta peserta1, Peserta peserta2) {
+            String prop1 = peserta1.getKelompok().toUpperCase();
+            String prop2 = peserta2.getKelompok().toUpperCase();
+
+            // ascending order
+            return prop1.compareTo(prop2);
+        }
+    };
+
+    public static Comparator<Peserta> GenderComparator = new Comparator<Peserta>() {
+        @Override
+        public int compare(Peserta peserta1, Peserta peserta2) {
+            String prop1 = peserta1.getGender().toUpperCase();
+            String prop2 = peserta2.getGender().toUpperCase();
+
+            // ascending order
+            return prop1.compareTo(prop2);
+        }
+    };
 
     @Override
     public boolean equals(Object o) {

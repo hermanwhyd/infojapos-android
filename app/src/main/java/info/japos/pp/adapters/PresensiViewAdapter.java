@@ -75,7 +75,8 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
         holder.imageView.setImageDrawable(drawable);
         holder.namaPanggilan.setText(peserta.getNamaPanggilan());
         holder.namaLengkap.setText(peserta.getNamaLengkap());
-        holder.kelompok.setText(peserta.getKelompok());
+        holder.otherInfo.setText(context.getString(R.string.presensi_otherinfo, peserta.getKelompok(), peserta.getGender()));
+
         // reset dulu
         holder.keterangan.reset();
         holder.keterangan.addPiece(new BabushkaText.Piece.Builder(PresensiKet.valueOf(peserta.getKeterangan()).getValue())
@@ -85,7 +86,7 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
         holder.keterangan.display();
 
         // to remove selection
-        onListItemSelect(holder, peserta, Boolean.FALSE);
+        onListItemSelect(holder, peserta);
 
         // binding data into swipe action
         holder.data = peserta;
@@ -98,30 +99,21 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
      */
     public void toggleSelectionState(PresensiViewHolder holder, final Peserta peserta) {
         boolean selection = !mSelectedItemsIds.get(peserta.getJamaahId());
-        onListItemSelect(holder, peserta, selection);
-    }
-
-    private void onListItemSelect(PresensiViewHolder holder, final Peserta peserta, boolean selection) {
         if (selection) {
             mSelectedItemsIds.put(peserta.getJamaahId(), Boolean.TRUE);
+        } else {
+            mSelectedItemsIds.delete(peserta.getJamaahId());
+        }
+        notifyItemChanged(holder.getAdapterPosition());
+    }
+
+    private void onListItemSelect(PresensiViewHolder holder, final Peserta peserta) {
+        boolean selection = mSelectedItemsIds.get(peserta.getJamaahId());
+        if (selection) {
             holder.checkIcon.setVisibility(View.VISIBLE);
             holder.getFront().setBackgroundColor(Utils.getColor(context, R.color.item_selected_background));
         } else {
-            mSelectedItemsIds.delete(peserta.getJamaahId());
             holder.checkIcon.setVisibility(View.GONE);
-            holder.getFront().setBackgroundColor(Utils.getColor(context, R.color.item_background));
-        }
-    }
-
-    /**
-     * Change background on item press/keydown and release when keyup
-     * @param holder
-     * @param selection
-     */
-    public void togglePressedState(PresensiViewHolder holder, boolean selection) {
-        if (selection) {
-            holder.getFront().setBackgroundColor(Utils.getColor(context, R.color.item_selected_press));
-        } else {
             holder.getFront().setBackgroundColor(Utils.getColor(context, R.color.item_background));
         }
     }
@@ -170,7 +162,7 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
     public class PresensiViewHolder extends SwipeToAction.ViewHolder<Peserta>
                         implements View.OnCreateContextMenuListener, PopupMenu.OnMenuItemClickListener {
         public View view;
-        TextView namaLengkap, namaPanggilan, kelompok, menuOpts;
+        TextView namaLengkap, namaPanggilan, otherInfo, menuOpts;
         BabushkaText keterangan;
         ImageView imageView, checkIcon;
         PresensiViewHolder(View v) {
@@ -178,7 +170,7 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
 
             namaLengkap = v.findViewById(R.id.tv_nama_lengkap);
             namaPanggilan = v.findViewById(R.id.tv_nama_panggilan);
-            kelompok = v.findViewById(R.id.tv_kelompok);
+            otherInfo = v.findViewById(R.id.tv_info_others);
             menuOpts = v.findViewById(R.id.tv_options);
             imageView = v.findViewById(R.id.iv_presensi);
             checkIcon = v.findViewById(R.id.check_icon);

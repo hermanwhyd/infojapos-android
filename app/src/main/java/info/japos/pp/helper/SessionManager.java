@@ -1,6 +1,6 @@
 package info.japos.pp.helper;
 
-import android.content.Context;
+import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
@@ -20,17 +20,15 @@ public class SessionManager {
     // Shared Preferences
     private SharedPreferences pref;
     private Editor editor;
-    private Context _context;
-    private UserRepository userRepository;
+    private Application application;
 
     // Shared pref mode
     int PRIVATE_MODE = 0;
 
-    public SessionManager(Context context) {
-        this._context = context;
-        pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
+    public SessionManager(Application application) {
+        this.application = application;
+        pref = application.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         editor = pref.edit();
-        userRepository = new UserRepository();
     }
 
     public void setUserLogged(int userId) {
@@ -50,7 +48,7 @@ public class SessionManager {
         if (!isLoggedIn()) return null;
 
         int userId = getUserIdLogged();
-        return userRepository.getUser(userId);
+        return UserRepository.with(application).getUser(userId);
     }
 
     public void setLogin(boolean isLoggedIn) {
@@ -73,7 +71,9 @@ public class SessionManager {
      * remove user logged from realm
      */
     public void invalidate() {
-        userRepository.removeUser(getUserLoged());
+        User userLogged = getUserLoged();
+        if (userLogged != null)
+            UserRepository.with(application).removeUser(userLogged);
         setLogin(Boolean.FALSE);
         removeApiToken();
         removeUserIdLogged();

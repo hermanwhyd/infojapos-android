@@ -1,14 +1,12 @@
 package info.japos.pp.models.realm;
 
-import android.media.effect.EffectUpdateListener;
+import android.app.Activity;
+import android.app.Application;
+import android.support.v4.app.Fragment;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 
-import info.japos.pp.AppController;
 import io.realm.Realm;
-import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 /**
@@ -16,30 +14,58 @@ import io.realm.RealmResults;
  */
 
 public class EnumsRepository {
+    private static EnumsRepository instance;
+    private final Realm realm;
+
+    public EnumsRepository(Application application) {
+        realm = Realm.getDefaultInstance();
+    }
+
+    public static EnumsRepository with(Fragment fragment) {
+        if (instance == null) {
+            instance = new EnumsRepository(fragment.getActivity().getApplication());
+        }
+        return instance;
+    }
+
+    public static EnumsRepository with(Activity activity) {
+        if (instance == null) {
+            instance = new EnumsRepository(activity.getApplication());
+        }
+        return instance;
+    }
+
+    public static EnumsRepository with(Application application) {
+        if (instance == null) {
+            instance = new EnumsRepository(application);
+        }
+        return instance;
+    }
+
+    public static EnumsRepository getInstance() {
+        return instance;
+    }
+
+    public Realm getRealm() {
+        return realm;
+    }
+
+    //Refresh the realm istance
+    public void refresh() {
+        realm.refresh();
+    }
+
     public RealmResults<Enums> getEnumsByGrup(String grup) {
-        RealmResults<Enums> result;
-        Realm r = Realm.getDefaultInstance();
-        r.beginTransaction();
-        result = r.where(Enums.class)
+        return realm.where(Enums.class)
                 .equalTo("grup", grup)
                 .findAll();
-        r.commitTransaction();
-
-        return result;
     }
 
     public void addEnums(List<Enums> enums) {
-        Realm r = Realm.getDefaultInstance();
-        r.beginTransaction();
-        r.copyToRealmOrUpdate(enums);
-        r.commitTransaction();
+        realm.executeTransaction((realm) -> realm.copyToRealmOrUpdate(enums));
     }
 
     public void deleteAllEnums() {
-        Realm r = Realm.getDefaultInstance();
-        r.beginTransaction();
-        RealmResults<Enums> results = r.where(Enums.class).findAll();
-        results.deleteAllFromRealm();
-        r.commitTransaction();
+        realm.executeTransaction((Realm realm) -> realm.clear(Enums.class));
     }
 }

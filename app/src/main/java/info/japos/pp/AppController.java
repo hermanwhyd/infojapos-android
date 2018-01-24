@@ -45,23 +45,22 @@ public class AppController extends Application {
         // shared preferences
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        // jika lastFetch lebih dari 12 jam
-        long lastFetch = sharedpreferences.getLong(AppConstant.LAST_GET_ENUM_IZIN, 0L);
-        long currTimeMillis = calendar.getTimeInMillis();
-        long diff = currTimeMillis - lastFetch;
-        Log.d(TAG, "Last fetch reasons: " + (diff/3600000) + "H");
-        if (diff >= 43200000) { // 12h
-            fetchEnumsIzin();
-        };
-
         // realms
-        Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .name(Realm.DEFAULT_REALM_NAME)
+        RealmConfiguration config = new RealmConfiguration.Builder(this)
+                .name("info.japos.pp.realm")
                 .schemaVersion(0)
                 .deleteRealmIfMigrationNeeded()
                 .build();
         Realm.setDefaultConfiguration(config);
+
+        // jika lastFetch lebih dari config xx jam
+        long lastFetch = sharedpreferences.getLong(AppConstant.LAST_GET_ENUM_IZIN, 0L);
+        long currTimeMillis = calendar.getTimeInMillis();
+        long diff = currTimeMillis - lastFetch;
+        Log.d(TAG, "Last fetch reasons: " + (diff/3600000) + "H");
+        if (diff >= 7200000) { // 2h
+            fetchEnumsIzin();
+        };
     }
 
     private void fetchEnumsIzin() {
@@ -72,8 +71,9 @@ public class AppController extends Application {
                 if (response.isSuccessful() && response.code() == 200) {
                     List<Enums> enums = response.body();
                     Log.d(TAG, "Enums 'izin_alasan' loaded: " + enums.size());
-                    EnumsRepository er = new EnumsRepository();
-                    if (!enums.isEmpty()) er.addEnums(enums);
+                    if (!enums.isEmpty()) {
+                        EnumsRepository.with(AppController.this).addEnums(enums);
+                    }
 
                     SharedPreferences.Editor editor = sharedpreferences.edit();
                     editor.putLong(AppConstant.LAST_GET_ENUM_IZIN, calendar.getTimeInMillis());

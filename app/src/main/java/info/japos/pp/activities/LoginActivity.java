@@ -56,9 +56,8 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
 
-        // init
         // Session manager
-        session = new SessionManager(getApplicationContext());
+        session = new SessionManager(LoginActivity.this.getApplication());
         // shared preferences
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -138,8 +137,7 @@ public class LoginActivity extends AppCompatActivity {
         String apiToken = response.getApiToken();
 
         // save into realm
-        UserRepository uRepo = new UserRepository();
-        uRepo.AddUser(userLogged);
+        ((UserRepository)UserRepository.with(this)).AddUser(userLogged);
 
         // save to session
         session.setLogin(Boolean.TRUE);

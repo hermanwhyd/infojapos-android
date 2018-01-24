@@ -1,9 +1,8 @@
 package info.japos.pp.models.ApplicationInfo;
 
-import android.os.Build;
-
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by HWAHYUDI on 06-Jan-18.
@@ -12,6 +11,7 @@ import io.realm.annotations.Index;
 public class ApplicationInfo extends RealmObject {
     @Index
     private String versionName;
+    @PrimaryKey
     @Index
     private int versionCode;
 
@@ -29,14 +29,6 @@ public class ApplicationInfo extends RealmObject {
 
     public void setVersionCode(int versionCode) {
         this.versionCode = versionCode;
-    }
-
-    public String getPhoneModel() {
-        return Build.MODEL;
-    }
-
-    public String getPhoneManufacturer() {
-        return Build.MANUFACTURER;
     }
 
 }

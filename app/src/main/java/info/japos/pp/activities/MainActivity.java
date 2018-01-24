@@ -35,6 +35,7 @@ import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.retrofit.VersionService;
 import info.japos.pp.view.CustomToast;
 import info.japos.utils.ApplicationUtil;
+import io.realm.Realm;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
 
         // Session manager
-        session = new SessionManager(getApplicationContext());
+        session = new SessionManager(this.getApplication());
         // shared preferences
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         long currTimeMillis = calendar.getTimeInMillis();
         long diff = currTimeMillis - lastUpdateCheck;
         Log.d(TAG, "Last check update: " + (diff/3600000) + "H");
-        if (diff >= 43200000) { // 12h
+        if (diff >= 7200000) { // 2h
             checkAppUpdate();
         }
 

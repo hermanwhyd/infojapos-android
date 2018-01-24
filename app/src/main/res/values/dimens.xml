@@ -1,13 +1,12 @@
 <resources>
     <dimen name="app_bar_height">200dp</dimen>
-    <dimen name="fab_margin">16dp</dimen>
     <dimen name="text_margin">16dp</dimen>
     <dimen name="default_margin">5dp</dimen>
 
     <!--Item Recycler View-->
-    <dimen name="item_height">60dp</dimen>
+    <dimen name="item_height">65dp</dimen>
     <dimen name="item_padding">8dp</dimen>
-    <dimen name="item_presensi_height">60dp</dimen>
+    <dimen name="item_presensi_height">65dp</dimen>
 
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>

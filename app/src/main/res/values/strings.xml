@@ -18,6 +18,8 @@
     <string name="kbm_error">Tarik kebawah untuk update list</string>
     <string name="presensi_noresult">Kelas ini tidak memiliki peserta</string>
     <string name="presensi_error">Tarik kebawah untuk update list</string>
+    <string name="presensi_otherinfo" >%s &#x25cf; %s</string>
+
 
     <!--Button Navigation Titles-->
     <string name="title_bnav_axel2">AXEL2</string>
@@ -38,4 +40,18 @@
     <!--solving rendering problems-->
     <item name="visible" type="id" />
     <item name="masked" type="id" />
+
+    <!--Arrays-->
+    <string-array name="izin_alasan">
+        <item>Sakit</item>
+        <item>Acara Keluarga</item>
+        <item>Acara Sekolah/Bimbel/Sejenisnya</item>
+        <item>Pekerjaan</item>
+    </string-array>
+    <string-array name="presensi_sortby">
+        <item>Nama Lengkap</item>
+        <item>Nama Panggilan</item>
+        <item>Kelompok</item>
+        <item>Gender</item>
+    </string-array>
 </resources>

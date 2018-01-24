@@ -103,7 +103,7 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
         showcasePrefsManager = new ShowcasePrefsManager(getActivity(), SHOWCASE_ID);
 
         // Session Manager
-        sessionManager = new SessionManager(getActivity());
+        sessionManager = new SessionManager(getActivity().getApplication());
 
         // butter knife binding
         ButterKnife.bind(this, view);
