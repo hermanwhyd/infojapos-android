@@ -8,10 +8,20 @@
             <!--andridd:idid@+id/nav_dashboard"-->
             <!--android:icon="@drawable/ic_dashboard"-->
             <!--android:title="Dashboard" />-->
+
+        <item
+            android:id="@+id/nav_schedue"
+            android:icon="@drawable/ic_presensi_book"
+            android:title="@string/title_activity_schedule"
+            android:visible="false"/>
         <item
             android:id="@+id/nav_absensi"
             android:icon="@drawable/ic_presensi_book"
-            android:title="@string/title_activity_presensi" />
+            android:title="@string/title_activity_presensi"/>
+        <item
+            android:id="@+id/nav_statistik"
+            android:icon="@drawable/ic_chart_bar"
+            android:title="@string/title_fragment_statistik" />
     </group>
     <group
         android:id="@+id/SlaveGroup"
@@ -22,8 +32,12 @@
             android:title="Logout" />
         <item
             android:id="@+id/nav_contactdev"
-            android:icon="@drawable/ic_help_circle"
+            android:icon="@drawable/ic_whatsapp"
             android:title="Contact Developer" />
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/ic_help_circle"
+            android:title="About" />
     </group>
 
 </menu>

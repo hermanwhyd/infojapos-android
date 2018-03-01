@@ -1,9 +1,7 @@
 package info.japos.pp.activities;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
@@ -46,7 +44,7 @@ public class LoginActivity extends AppCompatActivity {
     TextView linkSignup;
 
     private SessionManager session;
-    private SharedPreferences sharedpreferences;
+
 
     private Call<LoginResponse> mCallLogin;
 
@@ -58,8 +56,6 @@ public class LoginActivity extends AppCompatActivity {
 
         // Session manager
         session = new SessionManager(LoginActivity.this.getApplication());
-        // shared preferences
-        sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         checkIsLogged();
     }
@@ -99,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
         // validate input form
         if (!validate())  return;
 
-        MaterialDialog materialDialog = ProgresDialog.showIndeterminateProgressDialog(this, R.string.progress_authenticating_dialog, R.string.please_wait, true);
+        MaterialDialog materialDialog = ProgresDialog.showIndeterminateProgressDialog(this, R.string.progress_authenticating_dialog, R.string.progress_please_wait, true);
         materialDialog.show();
 
         String email = inputEmail.getText().toString();

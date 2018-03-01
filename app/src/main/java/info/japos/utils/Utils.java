@@ -16,6 +16,7 @@ import android.view.View;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import info.japos.pp.R;
 import info.japos.pp.view.CustomToast;
@@ -83,7 +84,18 @@ public class Utils {
      * @return String of param date with format dd/mm/yyyy
      */
     public static String formatDate(Date date) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd MMMM yyyy");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd MMMM yyyy", new Locale("in", "ID"));
+        return dateFormat.format(date);
+    }
+
+
+    /**
+     *
+     * @param date Date
+     * @return String of param date with format dd/mm/yyyy
+     */
+    public static String formatMonth(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM yyyy");
         return dateFormat.format(date);
     }
 
@@ -94,6 +106,16 @@ public class Utils {
      */
     public static String formatApiDate(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        return dateFormat.format(date);
+    }
+
+    /**
+     *
+     * @param date Date
+     * @return String of param date with format dd-MM-yyyy
+     */
+    public static String formatSimpleDate(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy");
         return dateFormat.format(date);
     }
 

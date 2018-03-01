@@ -6,5 +6,5 @@ package info.japos.pp.constants;
 
 public interface NetworkConstant {
     String API_BASE_URL = "http://api.japos.online/v1/";
-//String API_BASE_URL = "http://10.21.109.105:8081/v1/";
+//    String API_BASE_URL = "http://10.21.109.241/v1/";
 }

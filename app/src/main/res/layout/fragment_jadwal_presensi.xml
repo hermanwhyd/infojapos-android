@@ -20,7 +20,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/tv_subheader"
         android:layout_centerHorizontal="true"
-        android:drawableLeft="@drawable/ic_action_date"
         android:drawableStart="@drawable/ic_action_date"
         android:ems="10"
         android:focusable="false"

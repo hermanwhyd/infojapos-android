@@ -12,7 +12,7 @@ import com.google.gson.JsonPrimitive;
  */
 
 public class GsonUtil {
-    public static final Gson gInstance = new Gson();
+    private static final Gson gInstance = new Gson();
 
     public static Gson getInstance() {
         return gInstance;

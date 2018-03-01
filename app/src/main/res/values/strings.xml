@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Info Japos</string>
+    <string name="default_na">NA</string>
+    <string name="loading_text">Loading&#8230;</string>
 
     <!--notif-->
     <string name="list_updated">List telah diperbaharui</string>
@@ -8,18 +10,21 @@
     <string name="urlwa">https://api.whatsapp.com/send?phone=6285279335312</string>
 
     <!-- labels -->
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="navigation_drawer_open">Open navigation</string>
+    <string name="navigation_drawer_close">Close navigation</string>
     <string name="title_activity_jadwal">Jadwal KBM</string>
-    <string name="title_activity_presensi">Presensi KBM</string>
+    <string name="title_activity_schedule">Jadwal KBM</string>
+    <string name="title_activity_presensi">Kehadiran</string>
+    <string name="title_fragment_statistik">Statistik Kelas</string>
+    <string name="title_activity_statistik">Statistik Kehadiran</string>
 
     <!--text view-->
+    <string name="activeclass_noresult">Tidak ada kelas aktif di bulan ini</string>
     <string name="kbm_noresult">Tidak ada jadwal KBM di tanggal ini</string>
     <string name="kbm_error">Tarik kebawah untuk update list</string>
     <string name="presensi_noresult">Kelas ini tidak memiliki peserta</string>
     <string name="presensi_error">Tarik kebawah untuk update list</string>
-    <string name="presensi_otherinfo" >%s &#x25cf; %s</string>
-
+    <string name="presensi_otherinfo">%s &#x25cf; %s</string>
 
     <!--Button Navigation Titles-->
     <string name="title_bnav_axel2">AXEL2</string>
@@ -27,15 +32,17 @@
     <string name="title_bnav_tahfidz">TAHFIDZ</string>
 
     <!--Dialog-->
-    <string name="progress_authenticating_dialog">Authenticating...</string>
-    <string name="progress_connecting_dialog">Connecting Server</string>
-    <string name="please_wait">Mohon tunggu...</string>
-    <string name="progress_registering_dialog">Registering...</string>
+    <string name="progress_authenticating_dialog">Authenticating&#8230;</string>
+    <string name="progress_connecting_dialog">Mengambil Data</string>
+    <string name="progress_please_wait">Mohon tunggu&#8230;</string>
+    <string name="progress_registering_dialog">Registering&#8230;</string>
+    <string name="progress_createnewprecense">Mohon tunggu!\nSetelah selesai layar baru akan tapil dengan list peserta</string>
 
     <!--Message-->
     <string name="network_error">Network error, silakan cek koneksi internet Anda</string>
     <string name="presensi_success">%1$s berhasil ditandai %2$s</string>
     <string name="presensi_batch_success">%1$s dan %2$d lainnya berhasil ditandai %3$s</string>
+    <string name="presensi_createnew">membuat presensi baru KBM <b>%s</b> dijadwal hari <b>%s, pk %s-%s</b></string>
 
     <!--solving rendering problems-->
     <item name="visible" type="id" />
@@ -54,4 +61,31 @@
         <item>Kelompok</item>
         <item>Gender</item>
     </string-array>
+
+    <!--Autodetect Date-->
+    <string name="just_now">Baru saja</string>
+    <string name="minute_ago">%1$s menit lalu</string>
+    <string name="minutes_ago">%1$s menit lalu</string>
+    <string name="hour_ago">%1$s jam lalu</string>
+    <string name="hours_ago">%1$s jam lalu</string>
+    <string name="days_ago">%1$s hari lalu</string>
+    <string name="yesterday">Kemarin</string>
+    <string name="last_week">Minggu kemarin</string>
+    <string name="day_of_year">%1$s %2$s</string>
+    <string name="year">%1$s/%2$s/%3$s</string>
+    <string name="month_january">januari</string>
+    <string name="month_february">februari</string>
+    <string name="month_march">maret</string>
+    <string name="month_april">april</string>
+    <string name="month_may">mei</string>
+    <string name="month_june">juni</string>
+    <string name="month_july">juli</string>
+    <string name="month_august">agustus</string>
+    <string name="month_september">september</string>
+    <string name="month_october">oktober</string>
+    <string name="month_november">november</string>
+    <string name="month_december">desember</string>
+
+
+    <string name="about_body">info-japos, aplikasi untuk memudahkan monitoring KBM di Desa Japos.\n\nversion: %s.%d</string>
 </resources>

@@ -1,15 +1,15 @@
 package info.japos.pp.fragments;
 
 import android.app.Activity;
-import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,12 +20,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.shagi.materialdatepicker.date.DatePickerFragmentDialog;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -48,6 +48,7 @@ import info.japos.pp.retrofit.PresensiService;
 import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.view.EqualSpacingItemDecoration;
 import info.japos.pp.view.ProgresDialog;
+import info.japos.utils.DateFromNow;
 import info.japos.utils.ErrorUtils;
 import info.japos.utils.GsonUtil;
 import info.japos.utils.RecyclerColumnQty;
@@ -59,9 +60,12 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
 import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
-public class JadwalPresensiFragment extends Fragment implements View.OnClickListener, DatePickerDialog.OnDateSetListener
-        , OnItemSelected, SwipeRefreshLayout.OnRefreshListener {
+public class JadwalPresensiFragment extends Fragment
+        implements View.OnClickListener, OnItemSelected, SwipeRefreshLayout.OnRefreshListener,
+        DatePickerFragmentDialog.OnDateSetListener {
+
     private static final String TAG = JadwalPresensiFragment.class.getSimpleName();
+    private OnFragmentInteractionListener mListener;
     private static final String STATE_DATE_PICKED = "datePicked";
     private Call<List<SelectableJadwal>> mCallJadwal = null;
     private Call<CommonResponse> mCallPresensi = null;
@@ -70,6 +74,7 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
     private JadwalAdapter jadwalAdapter;
     private List<SelectableJadwal> jadwalList = new ArrayList<>();
 
+    private DateFromNow dateFromNow;
     private boolean isFirstLoad = Boolean.TRUE;
     private SessionManager sessionManager;
 
@@ -90,6 +95,10 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (mListener != null) {
+            mListener.onFragmentInteraction("Jadwal KBM");
+        }
+
         View view = inflater.inflate(R.layout.fragment_jadwal_presensi, container,false);
         return view;
     }
@@ -107,6 +116,9 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
 
         // butter knife binding
         ButterKnife.bind(this, view);
+
+        // date from now
+        dateFromNow = new DateFromNow(getActivity());
 
         // bind event onclick to this
         tanggalKMB.setOnClickListener(this);
@@ -146,7 +158,7 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
         // read state of datepicker from prev changes
         if (savedInstanceState != null) {
             datePicker.setTimeInMillis(savedInstanceState.getLong(STATE_DATE_PICKED, Calendar.getInstance().getTimeInMillis()));
-            Log.d("Bundle: ", Utils.formatDate(datePicker.getTime()));
+            Log.d(TAG, Utils.formatDate(datePicker.getTime()));
         }
     }
 
@@ -168,10 +180,11 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
         switch (id) {
             case R.id.btn_submit_pp:
                 SelectableJadwal sJadwal = jadwalAdapter.getSingleSelectedJadwal();
+
                 if (TextUtils.isEmpty(sJadwal.getStatus()) || sJadwal.getStatus().equalsIgnoreCase("")) {
                     new MaterialDialog.Builder(getActivity())
                             .title("Buat presensi baru?")
-                            .content("Membuat presensi baru kegiatan KBM di tanggal yang dipilih.")
+                            .content(R.string.presensi_createnew, sJadwal.getKelas(), Utils.formatDate(datePicker.getTime()).toLowerCase(), sJadwal.getJamMulai(), sJadwal.getJamSelesai())
                             .positiveText("Buat")
                             .negativeText("Batal")
                             .onPositive((dialog1, which) -> createNewPresensi(sJadwal))
@@ -181,8 +194,10 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
                 }
                 break;
             case R.id.et_tanggalkbm:
-                DialogFragment dpDialog = new DatePickerDialogFragment(this, datePicker);
-                dpDialog.show(getFragmentManager(), "Date Picker");
+                DatePickerFragmentDialog dialog = DatePickerFragmentDialog.newInstance(this , datePicker.get(Calendar.YEAR), datePicker.get(Calendar.MONTH), datePicker.get(Calendar.DATE));
+                dialog.setAccentColor(ContextCompat.getColor(getActivity(), R.color.colorPrimaryDarker));
+                dialog.setYearRange(2015, 2025);
+                dialog.show(getFragmentManager(), "Date Picker");
                 break;
         }
     }
@@ -192,7 +207,7 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
      * @param sJadwal
      */
     private void createNewPresensi(SelectableJadwal sJadwal) {
-        MaterialDialog materialDialog = ProgresDialog.showIndeterminateProgressDialog(getActivity(), R.string.progress_connecting_dialog, R.string.please_wait, true);
+        MaterialDialog materialDialog = ProgresDialog.showIndeterminateProgressDialog(getActivity(), R.string.progress_connecting_dialog, R.string.progress_createnewprecense, true);
         materialDialog.show();
         mCallPresensi =  ServiceGenerator
                 .createService(PresensiService.class)
@@ -203,7 +218,6 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
             public void onResponse(Call<CommonResponse> call, Response<CommonResponse> response) {
                 materialDialog.dismiss();
                 if (response.isSuccessful()) {
-                    Toast.makeText(getActivity(), "Presensi berhasil dibuat. Halaman presensi akan segera terbuka.", Toast.LENGTH_SHORT).show();
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -340,8 +354,8 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
     }
 
     @Override
-    public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-        this.datePicker.set(year, month, day);
+    public void onDateSet(DatePickerFragmentDialog view, int year, int monthOfYear, int dayOfMonth) {
+        this.datePicker.set(year, monthOfYear, dayOfMonth);
         tanggalKMB.setText(Utils.formatDate(this.datePicker.getTime()));
 
         // fetch data to server
@@ -365,6 +379,8 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
      * Tampilkan snackbar network error
      */
     private void showNetworkErrorSnackbar() {
+        if (getView() == null) return;
+
         View view = getView().findViewById(android.R.id.content);
         if (view != null) Utils.displayNetworkErrorSnackBar(view, null);
     }
@@ -427,5 +443,21 @@ public class JadwalPresensiFragment extends Fragment implements View.OnClickList
         //cancel retrofit mCallJadwal kalau activity sudah didestroy
         if (mCallJadwal != null) mCallJadwal.cancel();
         if (mCallPresensi != null) mCallPresensi.cancel();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mListener = (OnFragmentInteractionListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 }

@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.Dialog;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
@@ -32,10 +31,6 @@ public class DatePickerDialogFragment extends DialogFragment {
                 AlertDialog.THEME_DEVICE_DEFAULT_LIGHT,
                 mDateSetListener, cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-
-        // set saturday as first day
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            dialog.getDatePicker().setFirstDayOfWeek(Calendar.SATURDAY);
 
         return dialog;
     }

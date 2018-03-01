@@ -7,6 +7,7 @@
     <color name="accent_translucent">#33000000</color>
     <color name="colorPrimaryTrans">#BF81D4FA</color>
     <color name="white">#FFF</color>
+    <color name="white_translucent">#a1ffffff</color>
 
     <color name="item_checkicon_background">#BF9E9E9E</color>
     <color name="item_selected_background">#81D4FA</color>
@@ -25,4 +26,14 @@
     <!--swipe-->
     <color name="swipe_left">#00E676</color>
     <color name="swipe_right">#FF9100</color>
+
+    <!--Data Table-->
+    <color name="table_header_text">#CCFFFFFF</color>
+    <color name="table_data_row_even">#11C5CAE9</color>
+    <color name="table_data_row_odd">#33C5CAE9</color>
+
+    <!--Presensi-->
+    <color name="flag_hadir">#00E676</color>
+    <color name="flag_alpa">#FF3D00</color>
+    <color name="flag_izin">#FF9100</color>
 </resources>

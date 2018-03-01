@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -24,7 +25,10 @@ import java.util.Calendar;
 
 import info.japos.pp.R;
 import info.japos.pp.constants.AppConstant;
+import info.japos.pp.fragments.AboutDialog;
 import info.japos.pp.fragments.JadwalPresensiFragment;
+import info.japos.pp.fragments.OnFragmentInteractionListener;
+import info.japos.pp.fragments.StatistikFragment;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.models.ApplicationInfo.ApplicationInfo;
 import info.japos.pp.models.ApplicationInfo.VersionInfo;
@@ -35,15 +39,14 @@ import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.retrofit.VersionService;
 import info.japos.pp.view.CustomToast;
 import info.japos.utils.ApplicationUtil;
-import io.realm.Realm;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener {
     private static String TAG = MainActivity.class.getSimpleName();
 
-    private NavigationView navigationView;
     private User userLogged;
     private Calendar calendar = Calendar.getInstance();
     private Call<VersionInfo> callVersion;
@@ -91,12 +94,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        navigationView = findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
 
-        // change tv_name
-        TextView tv_username = navigationView.findViewById(R.id.footer_nama);
-        tv_username.setText(userLogged.getNama());
+        // change textview on drawer
+        TextView tvFullname = header.findViewById(R.id.tv_fullname);
+        tvFullname.setText(userLogged.getNama());
+        TextView tvEmail = header.findViewById(R.id.tv_email);
+        tvEmail.setText(userLogged.getEmail());
+        TextView tvVersion = navigationView.findViewById(R.id.footer_version);
+        tvVersion.setText(getResources().getString(R.string.app_name));
 
         // check if only orientation changed
         if (savedInstanceState == null) {
@@ -126,6 +134,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_absensi) {
             fragment = new JadwalPresensiFragment();
+        } else if (id == R.id.nav_statistik) {
+            fragment = new StatistikFragment();
         } else if (id == R.id.nav_contactdev) {
             String url = getResources().getString(R.string.urlwa);
             Intent i = new Intent(Intent.ACTION_VIEW);
@@ -133,15 +143,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(i);
         } else if (id == R.id.nav_logout) {
             performLogout();
+        } else if (id == R.id.nav_about) {
+            showAbout();
         }
 
+        // Fragment changing code
         if(fragment != null) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
             ft.commit();
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        // Closing the drawer after selecting
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
     }
 
@@ -203,6 +217,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
+     * Show about info
+     */
+    private void showAbout() {
+        AboutDialog.show(this);
+    }
+
+    /**
      * Open browser to download page
      * @param downloadUrl
      */
@@ -230,6 +251,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent i = new Intent(this, LoginActivity.class).addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         startActivity(i);
         this.finish();
+    }
+
+    @Override
+    public void onFragmentInteraction(String title) {
+        getSupportActionBar().setTitle(title);
     }
 
 }

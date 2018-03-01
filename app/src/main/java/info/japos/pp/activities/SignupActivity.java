@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -14,7 +14,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import info.japos.pp.R;
 import info.japos.pp.models.User;
 import info.japos.pp.models.network.CommonResponse;
@@ -23,14 +22,13 @@ import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.view.CustomToast;
 import info.japos.pp.view.ProgresDialog;
 import info.japos.utils.ErrorUtils;
-import info.japos.utils.GsonUtil;
 import info.japos.utils.Utils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SignupActivity extends AppCompatActivity {
-    private static String TAG = SignupActivity.class.getSimpleName();
+public class SignupActivity extends AppCompatActivity implements View.OnClickListener {
+//    private static String TAG = SignupActivity.class.getSimpleName();
 
     @BindView(R.id.input_name)
     EditText inputName;
@@ -45,17 +43,19 @@ public class SignupActivity extends AppCompatActivity {
     @BindView(R.id.link_login)
     TextView linkLogin;
 
-    private Call<CommonResponse> mCall;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
+
+        // listen
+        linkLogin.setOnClickListener(this);
+        btnSignup.setOnClickListener(this);
     }
 
-    @OnClick({R.id.btn_signup, R.id.link_login})
-    public void onViewClicked(View view) {
+    @Override
+    public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_signup:
                 signUp();
@@ -73,7 +73,7 @@ public class SignupActivity extends AppCompatActivity {
     private void signUp() {
         if (!validate()) return;
 
-        MaterialDialog materialDialog = ProgresDialog.showIndeterminateProgressDialog(this, R.string.progress_registering_dialog, R.string.please_wait, true);
+        MaterialDialog materialDialog = ProgresDialog.showIndeterminateProgressDialog(SignupActivity.this, R.string.progress_registering_dialog, R.string.progress_please_wait, true);
         materialDialog.show();
 
         User newUser = new User();
@@ -81,9 +81,8 @@ public class SignupActivity extends AppCompatActivity {
         newUser.setUsername(inputUsername.getText().toString());
         newUser.setEmail(inputEmail.getText().toString());
         newUser.setPassword(inputPassword.getText().toString());
-        Log.d(TAG, GsonUtil.getInstance().toJson(newUser));
 
-        mCall = ServiceGenerator
+        Call<CommonResponse> mCall = ServiceGenerator
                 .createService(LoginService.class)
                 .doRegister(newUser);
 
@@ -118,10 +117,10 @@ public class SignupActivity extends AppCompatActivity {
     public boolean validate() {
         boolean valid = true;
 
-        String name = inputName.getText().toString();
-        String email = inputEmail.getText().toString();
-        String password = inputPassword.getText().toString();
-        String username = inputUsername.getText().toString();
+        String name = TextUtils.isEmpty(inputName.getText()) ? "" : inputName.getText().toString();
+        String email = TextUtils.isEmpty(inputEmail.getText()) ? "" : inputEmail.getText().toString();
+        String password = TextUtils.isEmpty(inputPassword.getText()) ? "" : inputPassword.getText().toString();
+        String username = TextUtils.isEmpty(inputUsername.getText()) ? "" : inputUsername.getText().toString();
 
         if (name.isEmpty() || name.length() < 3) {
             inputName.setError("Min 3 karakter");
@@ -130,7 +129,7 @@ public class SignupActivity extends AppCompatActivity {
             inputName.setError(null);
         }
 
-        if (username .isEmpty() || username .length() < 3) {
+        if (username.isEmpty() || username.length() < 3) {
             inputUsername.setError("Min 3 karakter");
             valid = false;
         } else if (!username.matches("[a-zA-Z]+")) {

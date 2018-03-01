@@ -3,11 +3,13 @@ package info.japos.pp.activities;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -85,7 +87,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     private SwipeToAction swipeToAction;
     private Vibrator mVibrator;
     private boolean isFirstLoad = Boolean.TRUE;
-    private int idxListSorting = 0;
+    private int idxListSorting;
+
+    private SharedPreferences sharedpreferences;
 
     // Showcase config
     private static final String SHOWCASE_ID = "PresensiShowCase";
@@ -109,6 +113,10 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
         // shared preferences
         showcasePrefsManager = new ShowcasePrefsManager(this, SHOWCASE_ID);
+        sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // init index sorting
+        idxListSorting = sharedpreferences.getInt("prefSortingIdx", 0);
 
         // Swipe
         swipeRefreshPresensi.setColorSchemeColors(Color.CYAN, Color.YELLOW, Color.BLUE);
@@ -192,7 +200,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                 Log.d(TAG, "Item Recycler Blur");
                 if (swipeToAction.isInMultipleSelectionMode())
                     onListItemSelected(viewHolder, itemData);
-//                presensiAdapter.togglePressedState((PresensiViewAdapter.PresensiViewHolder) viewHolder, Boolean.FALSE);
+//                presensiAdapter.togglePressedState((PresensiViewAdapter.StatistikViewHolder) viewHolder, Boolean.FALSE);
             }
 
             @Override
@@ -521,6 +529,12 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                         (dialog, view, which, text) -> {
                             idxListSorting = which;
                             sortPesertaList();
+
+                            // update as shared prefference
+                            SharedPreferences.Editor editor = sharedpreferences.edit();
+                            editor.putInt("prefSortingIdx", which);
+                            editor.commit();
+
                             return true; // allow selection
                         })
                 .onNegative((dialog, which) -> dialog.dismiss())
@@ -538,7 +552,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     private void sortPesertaList() {
         Log.d(TAG, "Sort pesertaList, idxListSorting: " + idxListSorting);
         Peserta[] pesertaArr = pesertaList.toArray(new Peserta[pesertaList.size()]);
-        if (idxListSorting == 1)
+        if (idxListSorting == 0)
+            Arrays.sort(pesertaArr, Peserta::compareTo);
+        else if (idxListSorting == 1)
             Arrays.sort(pesertaArr, Peserta.NicknameComparator);
         else if (idxListSorting == 2)
             Arrays.sort(pesertaArr, Peserta.KelompokComparator);
@@ -550,6 +566,10 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         pesertaList.clear();
         pesertaList.addAll(Arrays.asList(pesertaArr));
         presensiAdapter.notifyDataSetChanged();
+
+        if (!isFirstLoad) {
+            Toast.makeText(PresensiActivity.this, R.string.list_updated, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -599,7 +619,8 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         //cancel retrofit mCall saat activity didestroy
         if (mCall != null) {
             mCall.cancel();
-        } else if (mCallUpdPresensi != null) {
+        }
+        if (mCallUpdPresensi != null) {
             mCallUpdPresensi.cancel();
         }
     }
