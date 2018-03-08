@@ -2,12 +2,15 @@ package info.japos.pp.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,10 +22,12 @@ import java.util.List;
 
 import info.japos.pp.R;
 import info.japos.pp.models.Jadwal;
-import info.japos.pp.models.listener.OnItemSelected;
+import info.japos.pp.models.PresensiInfoLog;
+import info.japos.pp.models.listener.ItemSelection;
 import info.japos.pp.models.view.SelectableJadwal;
 import info.japos.utils.BabushkaText;
 import info.japos.utils.Utils;
+import retrofit2.Call;
 
 /**
  * Created by HWAHYUDI on 17-Dec-17.
@@ -32,8 +37,7 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
     private Context context;
     private List<SelectableJadwal> mValues;
     private boolean isMultiSelectionEnable = false;
-    private static final int HIGHLIGHT_COLOR = 0x999be6ff;
-    private OnItemSelected onItemSelectedListener;
+    private ItemSelection listenet;
 
     // TextDrawable
     private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL; // or use DEFAULT
@@ -44,9 +48,9 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
             .endConfig()
             .rect();
 
-    public JadwalAdapter(Context context, OnItemSelected onItemSelectedListener, List<SelectableJadwal> items, boolean isMultiSelectionEnable) {
+    public JadwalAdapter(Context context, ItemSelection onItemSelectedListener, List<SelectableJadwal> items, boolean isMultiSelectionEnable) {
         this.context = context;
-        this.onItemSelectedListener = onItemSelectedListener;
+        this.listenet = onItemSelectedListener;
         this.isMultiSelectionEnable = isMultiSelectionEnable;
         mValues = items;
     }
@@ -79,7 +83,7 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
                     .textColor(Color.WHITE)
                     .build());
         } else {
-            holder.presensi.addPiece(new BabushkaText.Piece.Builder("  " + sJadwal.getStatus() + "  ")
+            holder.presensi.addPiece(new BabushkaText.Piece.Builder("  " + sJadwal.getTotalPeserta() + " siswa  ")
                     .backgroundColor(Color.parseColor("#53ef8f"))
                     .textColor(Color.WHITE)
                     .build());
@@ -87,24 +91,21 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
         holder.presensi.display();
 
         // set item click listener
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!isMultiSelectionEnable) {
-                    for (SelectableJadwal item : mValues) {
-                        if (!item.equals(sJadwal) && item.isSelected()) item.setSelected(Boolean.FALSE);
-                    }
-                    notifyDataSetChanged();
+        holder.itemView.setOnClickListener(view -> {
+            if (!isMultiSelectionEnable) {
+                for (SelectableJadwal item : mValues) {
+                    if (!item.equals(sJadwal) && item.isSelected()) item.setSelected(Boolean.FALSE);
                 }
+                notifyDataSetChanged();
+            }
 
-                Boolean isSelected = !sJadwal.isSelected();
-                sJadwal.setSelected(isSelected);
-                updateSelectedState(holder, sJadwal);
-                if (isSelected && isMultiSelectionEnable) {
-                    onItemSelectedListener.itemSelectionChanged(Boolean.TRUE);
-                } else {
-                    onItemSelectedListener.itemSelectionChanged(isAnyKelasSelected());
-                }
+            Boolean isSelected = !sJadwal.isSelected();
+            sJadwal.setSelected(isSelected);
+            updateSelectedState(holder, sJadwal);
+            if (isSelected && isMultiSelectionEnable) {
+                listenet.itemSelectionChanged(Boolean.TRUE);
+            } else {
+                listenet.itemSelectionChanged(isAnyKelasSelected());
             }
         });
     }
@@ -154,14 +155,16 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
         }
     }
 
-    class JadwalHolder extends RecyclerView.ViewHolder {
+    class JadwalHolder extends RecyclerView.ViewHolder implements PopupMenu.OnMenuItemClickListener {
         View view;
         ImageView imageView, checkIcon;
         TextView kelas, lokasi, jam;
         BabushkaText presensi;
+        ImageButton menuOpts;
 
         public JadwalHolder(View itemView) {
             super(itemView);
+            menuOpts = itemView.findViewById(R.id.tv_options);
             imageView = itemView.findViewById(R.id.image_view);
             checkIcon = itemView.findViewById(R.id.check_icon);
             kelas = itemView.findViewById(R.id.tv_kelas);
@@ -170,6 +173,26 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
             presensi = itemView.findViewById(R.id.tv_presensi);
 
             this.view = itemView;
+
+            menuOpts.setOnClickListener((view) -> {
+                //creating a popup menu
+                PopupMenu popup = new PopupMenu(view.getContext(), view);
+                //inflating menu from xml resource
+                popup.inflate(R.menu.jadwal_options);
+                //adding click listener
+                popup.setOnMenuItemClickListener(JadwalAdapter.JadwalHolder.this);
+                //displaying the popup
+                popup.show();
+            });
+        }
+
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            if (listenet != null) {
+                SelectableJadwal s = mValues.get(getAdapterPosition());
+                listenet.menuSelection(item, s.getPresensiId(), s);
+            }
+            return false;
         }
     }
 }

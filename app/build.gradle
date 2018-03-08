@@ -14,7 +14,7 @@ android {
         applicationId "info.japos.pp.absensi"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 5
+        versionCode 6
         versionName "1.0"
         multiDexEnabled false //important
         signingConfig signingConfigs.InfoJapos
@@ -85,4 +85,5 @@ dependencies {
         exclude group: 'com.android.support'
     }
     implementation 'de.codecrafters.tableview:tableview:2.8.0'
+    implementation 'com.github.armcha:LuseenBottomNavigation:1.8.2'
 }

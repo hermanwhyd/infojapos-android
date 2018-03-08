@@ -18,6 +18,7 @@
     <color name="border_color">#0091EA</color>
     <color name="text_color">#0091EA</color>
     <color name="text_sub_gray">#9E9E9E</color>
+    <color name="icon_gray">#9E9E9E</color>
 
     <!--Snackbar-->
     <color name="success_snackbar">@color/colorPrimaryDark</color>

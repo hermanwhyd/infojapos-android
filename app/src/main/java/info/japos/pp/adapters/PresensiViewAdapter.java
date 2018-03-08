@@ -5,12 +5,14 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -83,6 +85,11 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
                 .textColor(Color.parseColor(PresensiKet.valueOf(peserta.getKeterangan()).getColor()))
                 .style(Typeface.BOLD)
                 .build());
+        if (peserta.getKeterangan().equalsIgnoreCase(PresensiKet.I.name())) {
+            holder.keterangan.addPiece(new BabushkaText.Piece.Builder("\n" + peserta.getAlasan())
+                    .textSizeRelative(0.7f).textColor(Utils.getColor(context, R.color.text_sub_gray))
+                    .build());
+        }
         holder.keterangan.display();
 
         // to remove selection
@@ -90,6 +97,11 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
 
         // binding data into swipe action
         holder.data = peserta;
+
+        holder.imageView.setOnClickListener((view)  -> {
+                listener.onImageClick(holder, peserta);
+            }
+        );
     }
 
     /**
@@ -155,14 +167,15 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
     }
 
     public interface OnItemSelectedListener {
-        void onPresensiSelected(Peserta peserta);
         void onPresensiMenuAction(Peserta peserta, MenuItem item);
+        void onImageClick(PresensiViewHolder view, Peserta peserta);
     }
 
     public class PresensiViewHolder extends SwipeToAction.ViewHolder<Peserta>
                         implements View.OnCreateContextMenuListener, PopupMenu.OnMenuItemClickListener {
         public View view;
-        TextView namaLengkap, namaPanggilan, otherInfo, menuOpts;
+        TextView namaLengkap, namaPanggilan, otherInfo;
+        ImageButton menuOpts, menuInfo;
         BabushkaText keterangan;
         ImageView imageView, checkIcon;
         PresensiViewHolder(View v) {
@@ -177,18 +190,15 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
             keterangan = v.findViewById(R.id.tv_keterangan);
             this.view = v;
 
-            menuOpts.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    //creating a popup menu
-                    PopupMenu popup = new PopupMenu(view.getContext(), view);
-                    //inflating menu from xml resource
-                    popup.inflate(R.menu.presensi_options);
-                    //adding click listener
-                    popup.setOnMenuItemClickListener(PresensiViewHolder.this);
-                    //displaying the popup
-                    popup.show();
-                }
+            menuOpts.setOnClickListener((view) -> {
+                //creating a popup menu
+                PopupMenu popup = new PopupMenu(view.getContext(), view);
+                //inflating menu from xml resource
+                popup.inflate(R.menu.presensi_options);
+                //adding click listener
+                popup.setOnMenuItemClickListener(PresensiViewHolder.this);
+                //displaying the popup
+                popup.show();
             });
 
             // on longpress

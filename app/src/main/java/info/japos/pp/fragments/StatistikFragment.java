@@ -35,6 +35,7 @@ import info.japos.pp.R;
 import info.japos.pp.activities.StatistikActivity;
 import info.japos.pp.adapters.StatistikViewAdapter;
 import info.japos.pp.models.Kelas;
+import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.pp.retrofit.KelasService;
 import info.japos.pp.retrofit.ServiceGenerator;
@@ -161,7 +162,7 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
 
         mCallKelas = ServiceGenerator
                 .createService(KelasService.class)
-                .getClassActive(Utils.formatApiDate(cal.getTime()));
+                .getClassActive(Utils.formatApiDate(cal.getTime()), Utils.formatApiDate(cal2.getTime()));
 
         // enqueue
         swipeRefreshKelas.setRefreshing(Boolean.TRUE);
@@ -240,34 +241,6 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
         dpd.show(getActivity().getFragmentManager(), "Datepickerdialog");
     }
 
-    /**
-     * Show month and year picker
-     */
-//    private void setMonthPicker() {
-//        MonthPickerDialog.Builder builder = new MonthPickerDialog.Builder(this.getActivity(), new MonthPickerDialog.OnDateSetListener() {
-//            @Override
-//            public void onDateSet(int selectedMonth, int selectedYear) {
-//                Log.d(TAG, "selectedMonth : " + selectedMonth + " selectedYear : " + selectedYear);
-//                datePicker.set(selectedYear, selectedMonth, 1);
-//
-//                // fetch data from server
-//                noResultInfo.setVisibility(View.GONE);
-//                isFirstLoad = Boolean.TRUE;
-//                getKelasList(datePicker);
-//
-//                periode.setText(Utils.formatMonth(datePicker.getTime()));
-//            }
-//        }, datePicker.get(Calendar.YEAR), datePicker.get(Calendar.MONTH));
-//
-//        builder
-//                .setActivatedYear(datePicker.get(Calendar.YEAR))
-//                .setActivatedMonth(datePicker.get(Calendar.MONTH))
-//                .setMinYear(2016)
-//                .setTitle("Pilih bulan")
-//                .build()
-//                .show();
-//    }
-
     @Override
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth, int yearEnd, int monthOfYearEnd, int dayOfMonthEnd) {
         Log.d(TAG, String.format("Start: %d/%d/%d, End: %d/%d/%d", dayOfMonth, monthOfYear, year, dayOfMonthEnd, monthOfYearEnd, yearEnd));
@@ -302,9 +275,12 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
             case R.id.btn_submit_pp:
                 Intent i = new Intent(getActivity(), StatistikActivity.class);
                 i.putExtra("KELASID", sttViewAdapter.getSelectedKelas().getId());
+                i.putExtra("KELASNAME", sttViewAdapter.getSelectedKelas().getKelas());
                 i.putExtra("TIMESTAMP1", Utils.formatApiDate(datePicker.getTime()));
                 i.putExtra("TIMESTAMP2", Utils.formatApiDate(datePickerEnd.getTime()));
                 i.putExtra("LABEL_TIMESTAMP", periode.getText().toString());
+                i.putExtra("LABEL_TOTAL_KBM", sttViewAdapter.getSelectedKelas().getTotalKBM());
+
                 startActivity(i);
                 break;
             case R.id.et_periode:
@@ -324,9 +300,12 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
      * Tampilkan snackbar network error
      */
     private void showNetworkErrorSnackbar() {
-        if (getView() == null) return;
-        View view = getView().findViewById(android.R.id.content);
-        if (view != null) Utils.displayNetworkErrorSnackBar(view, null);
+        try {
+            View view = getActivity().findViewById(android.R.id.content);
+            Utils.displayNetworkErrorSnackBar(view, null);
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+        }
     }
 
     @Override

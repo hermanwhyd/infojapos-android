@@ -14,8 +14,10 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +28,7 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -43,6 +46,7 @@ import info.japos.pp.helper.ToolbarPresensiActionModeCallback;
 import info.japos.pp.models.Jadwal;
 import info.japos.pp.models.Peserta;
 import info.japos.pp.models.Presensi;
+import info.japos.pp.models.PresensiInfoLog;
 import info.japos.pp.models.enums.PresensiKet;
 import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.models.realm.Enums;
@@ -55,6 +59,7 @@ import info.japos.pp.view.EqualSpacingItemDecoration;
 import info.japos.utils.BabushkaText;
 import info.japos.utils.ErrorUtils;
 import info.japos.utils.GsonUtil;
+import info.japos.utils.RecyclerColumnQty;
 import info.japos.utils.Utils;
 import info.japos.vendor.SwipeToAction;
 import io.realm.RealmResults;
@@ -65,7 +70,8 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
 import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
-public class PresensiActivity extends AppCompatActivity implements PresensiViewAdapter.OnItemSelectedListener, SwipeRefreshLayout.OnRefreshListener {
+public class PresensiActivity extends AppCompatActivity implements PresensiViewAdapter.OnItemSelectedListener
+        , SwipeRefreshLayout.OnRefreshListener {
     private static final String TAG = PresensiActivity.class.getSimpleName();
 
     @BindView(R.id.rv_presensi)
@@ -98,8 +104,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     private SessionManager sessionManager;
     private ActionMode mActionMode;
 
-    Call<Presensi> mCall = null;
-    Call<CommonResponse> mCallUpdPresensi;
+    private Call<Presensi> mCall = null;
+    private Call<CommonResponse> mCallUpdPresensi;
+    private Call<PresensiInfoLog> mCallPresensiWhoUpdate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,8 +132,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         sessionManager = new SessionManager(this.getApplication());
 
         // init recycler
-        linearLayoutManager = new LinearLayoutManager(this);
-        presensiView.setLayoutManager(linearLayoutManager);
+        RecyclerColumnQty recyclerColumnQty = new RecyclerColumnQty(this, R.layout.item_presensi);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this,recyclerColumnQty.calculateNoOfColumns());
+        presensiView.setLayoutManager(gridLayoutManager );
         presensiView.addItemDecoration(new EqualSpacingItemDecoration(12, EqualSpacingItemDecoration.VERTICAL)); // 8px. In practice, you'll want to use getDimensionPixelSize
         presensiView.setHasFixedSize(Boolean.TRUE);
         presensiAdapter = new PresensiViewAdapter(pesertaList, this, PresensiActivity.this);
@@ -174,6 +182,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
             case R.id.mn_presensi_sortby:
                 onSortByPressed();
                 return true;
+            case R.id.mn_presensi_info:
+                getPresensiDetail();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -219,6 +230,12 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         });
     }
 
+
+    @Override
+    public void onImageClick(PresensiViewAdapter.PresensiViewHolder viewHolder, Peserta peserta) {
+        onListItemSelected(viewHolder, peserta);
+    }
+
     // List item select method
     private void onListItemSelected(SwipeToAction.ViewHolder viewHolder, Peserta peserta) {
         presensiAdapter.toggleSelectionState((PresensiViewAdapter.PresensiViewHolder) viewHolder, peserta);
@@ -227,6 +244,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         boolean hasSelectedItem = presensiAdapter.getSelectedCount() > 0;
         if (hasSelectedItem && mActionMode == null) {
             mActionMode = this.startSupportActionMode(new ToolbarPresensiActionModeCallback(this));
+            swipeToAction.setInMultipleSelectionMode(Boolean.TRUE);
         } else if (!hasSelectedItem && mActionMode != null) {
             Log.d(TAG, "No item selected, then set inMultipleSelectionMode disabled!");
             swipeToAction.setInMultipleSelectionMode(Boolean.FALSE);
@@ -333,7 +351,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         presensi.getListPeserta().clear();
         presensi.getListPeserta().addAll(pesertaList);
 
-        Log.i(TAG, "Update ket presensi: PresensiId->" + presensi.getId() + ", Object->" + GsonUtil.getInstance().toJson(presensi));
+//        Log.i(TAG, "Update ket presensi: PresensiId->" + presensi.getId() + ", Object->" + GsonUtil.getInstance().toJson(presensi));
 
         swipeRefreshPresensi.setRefreshing(Boolean.TRUE);
         mCallUpdPresensi = ServiceGenerator
@@ -441,10 +459,6 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         populateStudents(iJadwal, iTimestamp);
     }
 
-    @Override
-    public void onPresensiSelected(Peserta peserta) {
-        Log.i(TAG, "Item selected: " + GsonUtil.getInstance().toJson(peserta));
-    }
 
     @Override
     public void onPresensiMenuAction(Peserta peserta, MenuItem item) {
@@ -458,7 +472,44 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
             case R.id.mn_alpa:
                 updateKetPresensi(presensi, peserta, PresensiKet.A);
                 break;
+            case R.id.mn_info:
+                showMenuInfo(peserta);
+                break;
         }
+    }
+
+    private void showMenuInfo(Peserta peserta) {
+        mCallPresensiWhoUpdate = ServiceGenerator
+                .createService(PresensiService.class)
+                .getPresensiWhoUpdate(presensi.getId(), peserta.getJamaahId());
+
+        mCallPresensiWhoUpdate.enqueue(new Callback<PresensiInfoLog>() {
+            @Override
+            public void onResponse(Call<PresensiInfoLog> call, Response<PresensiInfoLog> response) {
+                PresensiInfoLog bml = response.body();
+                String strDate = "";
+                try {
+                    Date date = Utils.parseFromMysql(bml.getUpdatedDate());
+                    strDate = Utils.formatSimpleDate(date, "EEEE, dd/MMM/yyyy HH:mm");
+                } catch (ParseException e) {
+                    strDate = "-";
+                    e.printStackTrace();
+                }
+
+                new MaterialDialog.Builder(PresensiActivity.this)
+                        .title("Presensi Detail")
+                        .content(R.string.presensi_infodetail, TextUtils.isEmpty(bml.getNamaLengkap()) ? bml.getUpdatedBy() : bml.getNamaLengkap(), strDate)
+                        .positiveText("OK")
+                        .onPositive((dialog, which) -> dialog.dismiss())
+                        .show();
+            }
+
+            @Override
+            public void onFailure(Call<PresensiInfoLog> call, Throwable t) {
+                showNetworkErrorSnackbar();
+                t.printStackTrace();
+            }
+        });
     }
 
     // close Action Mode
@@ -570,6 +621,51 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         if (!isFirstLoad) {
             Toast.makeText(PresensiActivity.this, R.string.list_updated, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Menampilkan informasi creator dan statistik presensi
+     */
+    private void getPresensiDetail() {
+        if (presensi == null) {
+            Toast.makeText(this, "Silakan tunggu pengambilan data sampai selesai", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Call<PresensiInfoLog> mCallPresensiLog = ServiceGenerator.createService(PresensiService.class)
+                .getPresensiStatistik(presensi.getId());
+
+        mCallPresensiLog.enqueue(new Callback<PresensiInfoLog>() {
+            @Override
+            public void onResponse(Call<PresensiInfoLog> call, Response<PresensiInfoLog> response) {
+                if (response.isSuccessful() && response.code() == 200) {
+                    PresensiInfoLog presensiInfoLog = response.body();
+                    if (presensiInfoLog != null) {
+                        String strDate = "";
+                        try {
+                            Date date = Utils.parseFromMysql(presensiInfoLog.getCreatedDate());
+                            strDate = Utils.formatSimpleDate(date, "EEEE, dd/MMM/yyyy HH:mm");
+                        } catch (ParseException e) {
+                            strDate = "-";
+                            e.printStackTrace();
+                        }
+
+                        new MaterialDialog.Builder(PresensiActivity.this)
+                                .title("Presensi Info")
+                                .content(R.string.presensi_infostatistik, presensi.getKelas(), TextUtils.isEmpty(presensiInfoLog.getNamaLengkap()) ? presensiInfoLog.getCreatedBy() : presensiInfoLog.getNamaLengkap(),
+                                        strDate, presensiInfoLog.getStatistik().getHadir(), presensiInfoLog.getStatistik().getAlpa(), presensiInfoLog.getStatistik().getIzin())
+                                .positiveText("Ok")
+                                .onPositive((dialog, which) -> dialog.dismiss())
+                                .show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PresensiInfoLog> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 
     @Override

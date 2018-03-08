@@ -4,6 +4,7 @@
     android:minWidth="210dp"
     android:layout_height="@dimen/item_presensi_height"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardBackgroundColor="@color/white"
     app:cardPreventCornerOverlap="false">
 
     <LinearLayout
@@ -35,7 +36,7 @@
 
         <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="@dimen/default_margin"
             android:layout_height="@dimen/item_height">
@@ -61,8 +62,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="N/A"
+                android:layout_gravity="bottom"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:textStyle="bold" />
         </LinearLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_height"
+            android:minWidth="75dp">
+
+            <info.japos.utils.BabushkaText
+                android:id="@+id/tv_ttl_kbm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="5dp"
+                android:text="@string/default_na"
+                android:textAlignment="textEnd" />
+
+        </RelativeLayout>
     </LinearLayout>
 </android.support.v7.widget.CardView>

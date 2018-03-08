@@ -21,15 +21,10 @@
     <!--text view-->
     <string name="activeclass_noresult">Tidak ada kelas aktif di bulan ini</string>
     <string name="kbm_noresult">Tidak ada jadwal KBM di tanggal ini</string>
-    <string name="kbm_error">Tarik kebawah untuk update list</string>
+    <string name="kbm_error">Terjadi error koneksi/diserver.\nTarik kebawah untuk mencoba lagi</string>
     <string name="presensi_noresult">Kelas ini tidak memiliki peserta</string>
     <string name="presensi_error">Tarik kebawah untuk update list</string>
     <string name="presensi_otherinfo">%s &#x25cf; %s</string>
-
-    <!--Button Navigation Titles-->
-    <string name="title_bnav_axel2">AXEL2</string>
-    <string name="title_bnav_axel3">AXEL3</string>
-    <string name="title_bnav_tahfidz">TAHFIDZ</string>
 
     <!--Dialog-->
     <string name="progress_authenticating_dialog">Authenticating&#8230;</string>
@@ -42,7 +37,16 @@
     <string name="network_error">Network error, silakan cek koneksi internet Anda</string>
     <string name="presensi_success">%1$s berhasil ditandai %2$s</string>
     <string name="presensi_batch_success">%1$s dan %2$d lainnya berhasil ditandai %3$s</string>
-    <string name="presensi_createnew">membuat presensi baru KBM <b>%s</b> dijadwal hari <b>%s, pk %s-%s</b></string>
+    <string name="presensi_createnew"><![CDATA[membuat presensi baru KBM <b>%s</b> dijadwal <b>%s, pk %s-%s</b>]]></string>
+    <string name="presensi_infodetail"><![CDATA[diupdate oleh <b>%s</b> pada <b>%s</b>]]></string>
+    <string name="presensi_delete"><![CDATA[presensi KBM kelas <b>%s</b> dijadwal <b>%s, pk %s-%s</b> akan dihapus dan tidak bisa dikembalikan lagi]]></string>
+    <string name="presensi_infostatistik"><![CDATA[
+                                            presensi KBM kelas <b>%s</b> dibuat oleh <b>%s</b> pada <b>%s</b>\n\n</br>
+                                            <b>Kehadiran:</b> Hadir: %s, Alpa: %s, Izin: %s
+                                            ]]></string>
+    <string name="presensi_infostatistik_empty"><![CDATA[
+                                            presensi KBM kelas <b>%s</b> belum dibuat. Untuk membuatnya, silakan pilih kelas dan klik tombol NEXT dibawah
+                                            ]]></string>
 
     <!--solving rendering problems-->
     <item name="visible" type="id" />
@@ -88,4 +92,7 @@
 
 
     <string name="about_body">info-japos, aplikasi untuk memudahkan monitoring KBM di Desa Japos.\n\nversion: %s.%d</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

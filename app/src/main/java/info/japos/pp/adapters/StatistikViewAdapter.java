@@ -1,6 +1,7 @@
 package info.japos.pp.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import java.util.List;
 import info.japos.pp.R;
 import info.japos.pp.models.Kelas;
 import info.japos.pp.models.listener.OnItemSelected;
+import info.japos.utils.BabushkaText;
 import info.japos.utils.Utils;
 
 /**
@@ -65,6 +67,21 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
         holder.kelas.setText(kelas.getKelas());
         holder.pembinaan.setText(kelas.getLvPembinaan());
         holder.pembina.setText(kelas.getLvPembina() + " " + kelas.getNamaMajelisTaklim());
+
+        // Babushka Text
+        holder.ttlKBM.reset();
+        if (kelas.getTotalKBM() == null) {
+            holder.ttlKBM.addPiece(new BabushkaText.Piece.Builder("  N/A  ")
+                    .backgroundColor(Color.parseColor("#f4ac41"))
+                    .textColor(Color.WHITE)
+                    .build());
+        } else {
+            holder.ttlKBM.addPiece(new BabushkaText.Piece.Builder("  " + kelas.getTotalKBM() + " KBM  ")
+                    .backgroundColor(Color.parseColor("#53ef8f"))
+                    .textColor(Color.WHITE)
+                    .build());
+        }
+        holder.ttlKBM.display();
 
         // to remove selection
         onListItemSelect(holder, kelas);
@@ -153,6 +170,7 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
         View view;
         ImageView imageView, checkIcon;
         TextView kelas, pembinaan, pembina;
+        BabushkaText ttlKBM;
 
         public StatistikViewHolder(View itemView) {
             super(itemView);
@@ -161,6 +179,7 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
             kelas = itemView.findViewById(R.id.tv_kelas);
             pembinaan = itemView.findViewById(R.id.tv_lv_pembinaan);
             pembina = itemView.findViewById(R.id.tv_pembina);
+            ttlKBM = itemView.findViewById(R.id.tv_ttl_kbm);
 
             this.view = itemView;
         }

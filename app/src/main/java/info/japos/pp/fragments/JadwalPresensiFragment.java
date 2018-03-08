@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -17,6 +18,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -27,8 +29,10 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.shagi.materialdatepicker.date.DatePickerFragmentDialog;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -40,13 +44,16 @@ import info.japos.pp.adapters.JadwalAdapter;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.helper.ShowcasePrefsManager;
 import info.japos.pp.models.Jadwal;
-import info.japos.pp.models.listener.OnItemSelected;
+import info.japos.pp.models.PresensiInfoLog;
+import info.japos.pp.models.listener.ItemSelection;
+import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.models.view.SelectableJadwal;
 import info.japos.pp.retrofit.JadwalService;
 import info.japos.pp.retrofit.PresensiService;
 import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.view.EqualSpacingItemDecoration;
+import info.japos.pp.view.MessageBoxDialog;
 import info.japos.pp.view.ProgresDialog;
 import info.japos.utils.DateFromNow;
 import info.japos.utils.ErrorUtils;
@@ -61,7 +68,7 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 public class JadwalPresensiFragment extends Fragment
-        implements View.OnClickListener, OnItemSelected, SwipeRefreshLayout.OnRefreshListener,
+        implements View.OnClickListener, ItemSelection, SwipeRefreshLayout.OnRefreshListener,
         DatePickerFragmentDialog.OnDateSetListener {
 
     private static final String TAG = JadwalPresensiFragment.class.getSimpleName();
@@ -146,12 +153,9 @@ public class JadwalPresensiFragment extends Fragment
         if (!showcasePrefsManager.hasFired()) presentShowcaseSequence();
 
         // post runnable to run fetching data
-        swipeRefreshJadwal.post(new Runnable() {
-            @Override
-            public void run() {
+        swipeRefreshJadwal.postDelayed(() -> {
                 getJadwalKBM(datePicker);
-            }
-        });
+        }, 100);
     }
 
     private void initBundleHandler(Bundle savedInstanceState) {
@@ -184,7 +188,7 @@ public class JadwalPresensiFragment extends Fragment
                 if (TextUtils.isEmpty(sJadwal.getStatus()) || sJadwal.getStatus().equalsIgnoreCase("")) {
                     new MaterialDialog.Builder(getActivity())
                             .title("Buat presensi baru?")
-                            .content(R.string.presensi_createnew, sJadwal.getKelas(), Utils.formatDate(datePicker.getTime()).toLowerCase(), sJadwal.getJamMulai(), sJadwal.getJamSelesai())
+                            .content(R.string.presensi_createnew, sJadwal.getKelas(), Utils.formatDate(datePicker.getTime()), sJadwal.getJamMulai(), sJadwal.getJamSelesai())
                             .positiveText("Buat")
                             .negativeText("Batal")
                             .onPositive((dialog1, which) -> createNewPresensi(sJadwal))
@@ -326,7 +330,9 @@ public class JadwalPresensiFragment extends Fragment
                          @Override
                          public void onFailure(Call<List<SelectableJadwal>> call, Throwable t) {
                              swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
-                             t.printStackTrace();
+                             Log.e(TAG, t.getMessage(), t);
+                             noResultInfo.setText(R.string.kbm_error);
+                             noResultInfo.setVisibility(View.VISIBLE);
                              showNetworkErrorSnackbar();
                          }
         });
@@ -351,6 +357,72 @@ public class JadwalPresensiFragment extends Fragment
         float alpha = isAnyItemSelected ? 1f : 0.5f;
         btnNext.setEnabled(isAnyItemSelected);
         btnNext.setAlpha(alpha);
+    }
+
+    @Override
+    public void menuSelection(MenuItem menuItem, @Nullable Integer reffId, Object ... adds) {
+        if (reffId == null) {
+            SelectableJadwal s = (SelectableJadwal)adds[0];
+            new MaterialDialog.Builder(getActivity())
+                    .title("Presensi Info")
+                    .content(R.string.presensi_infostatistik_empty, s.getKelas())
+                    .positiveText("Ok")
+                    .onPositive((dialog, which) -> dialog.dismiss())
+                    .show();
+
+            return;
+        }
+
+        switch (menuItem.getItemId()) {
+            case R.id.mn_delete:
+                Log.d(TAG, "Activity start deleting presence");
+                SelectableJadwal sJadwal = (SelectableJadwal)adds[0];
+                new MaterialDialog.Builder(getActivity())
+                        .title("Hapus presensi?")
+                        .content(R.string.presensi_delete, sJadwal.getKelas(), Utils.formatDate(datePicker.getTime()), sJadwal.getJamMulai(), sJadwal.getJamSelesai())
+                        .positiveText("Hapus")
+                        .negativeText("Batal")
+                        .onPositive((dialog, which) -> doDeletePresensi(reffId))
+                        .show();
+                break;
+            case R.id.mn_info :
+                Call<PresensiInfoLog> mCallPresensiLog = ServiceGenerator.createService(PresensiService.class)
+                        .getPresensiStatistik(reffId);
+
+                mCallPresensiLog.enqueue(new Callback<PresensiInfoLog>() {
+                    @Override
+                    public void onResponse(Call<PresensiInfoLog> call, Response<PresensiInfoLog> response) {
+                        if (response.isSuccessful() && response.code() == 200) {
+                            PresensiInfoLog presensiInfoLog = response.body();
+                            if (presensiInfoLog != null) {
+                                String strDate = "";
+                                try {
+                                    Date date = Utils.parseFromMysql(presensiInfoLog.getCreatedDate());
+                                    strDate = Utils.formatSimpleDate(date, "EEEE, dd/MMM/yyyy HH:mm");
+                                } catch (ParseException e) {
+                                    strDate = "-";
+                                    e.printStackTrace();
+                                }
+
+                                SelectableJadwal sJadwal = (SelectableJadwal)adds[0];
+                                new MaterialDialog.Builder(getActivity())
+                                        .title("Presensi Info")
+                                        .content(R.string.presensi_infostatistik, sJadwal.getKelas(), TextUtils.isEmpty(presensiInfoLog.getNamaLengkap()) ? presensiInfoLog.getCreatedBy() : presensiInfoLog.getNamaLengkap(),
+                                                strDate, presensiInfoLog.getStatistik().getHadir(), presensiInfoLog.getStatistik().getAlpa(), presensiInfoLog.getStatistik().getIzin())
+                                        .positiveText("Ok")
+                                        .onPositive((dialog, which) -> dialog.dismiss())
+                                        .show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<PresensiInfoLog> call, Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
+                break;
+        }
     }
 
     @Override
@@ -379,10 +451,12 @@ public class JadwalPresensiFragment extends Fragment
      * Tampilkan snackbar network error
      */
     private void showNetworkErrorSnackbar() {
-        if (getView() == null) return;
-
-        View view = getView().findViewById(android.R.id.content);
-        if (view != null) Utils.displayNetworkErrorSnackBar(view, null);
+        try {
+            View view = getActivity().findViewById(android.R.id.content);
+            Utils.displayNetworkErrorSnackBar(view, null);
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+        }
     }
 
     @Override
@@ -435,6 +509,57 @@ public class JadwalPresensiFragment extends Fragment
 
         // start sequence
         sequence.start();
+    }
+
+    /**
+     * Invoke server, Hapus presensi
+     */
+    private void doDeletePresensi(int presensiId) {
+        Call<CommonResponse>  mCallPresensiDelete = ServiceGenerator.createService(PresensiService.class)
+                .deletePresensi(presensiId, sessionManager.getApiToken());
+        swipeRefreshJadwal.setRefreshing(Boolean.TRUE);
+
+        mCallPresensiDelete.enqueue(new Callback<CommonResponse>() {
+            @Override
+            public void onResponse(Call<CommonResponse> call, Response<CommonResponse> response) {
+                if (response.isSuccessful() && response.code() == 200) {
+                    Snackbar snackbar = Snackbar.make(getActivity().findViewById(android.R.id.content), "Presensi berhasil dihapus", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
+
+                    swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
+                    getJadwalKBM(datePicker);
+                } else {
+                    swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
+                    CommonResponse commonResponse = ErrorUtils.parseError(response);
+                    Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + GsonUtil.getInstance().toJson(commonResponse));
+                    switch (response.code()) {
+                        case 401:
+                            Toast.makeText(getActivity(), commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            break;
+                        case 409:
+                            MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
+                            break;
+                        case 500:
+                            Toast.makeText(getActivity(), "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
+                            break;
+                        default:
+                            String message = (commonResponse != null && commonResponse.getMessage() != null && !commonResponse.getMessage().equalsIgnoreCase(""))
+                                    ? commonResponse.getMessage() : "Terjadi kesalahan yang tidak diketahui";
+                            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CommonResponse> call, Throwable t) {
+                swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
+                Log.e(TAG, t.getMessage(), t);
+                noResultInfo.setText(R.string.kbm_error);
+                noResultInfo.setVisibility(View.VISIBLE);
+                showNetworkErrorSnackbar();
+            }
+        });
     }
 
     @Override

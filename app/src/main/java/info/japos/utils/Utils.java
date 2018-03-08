@@ -81,18 +81,27 @@ public class Utils {
     /**
      *
      * @param date Date
-     * @return String of param date with format dd/mm/yyyy
+     * @return String of param date with format EEEE, dd MMMM yyyy. e.g Selasa, 02 Februari 1990
      */
     public static String formatDate(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd MMMM yyyy", new Locale("in", "ID"));
         return dateFormat.format(date);
     }
 
+    /**
+     * @param strDate a string date mysql format. e.g. 2018-02-16 02:39:32
+     * @return object Date
+     */
+    public static Date parseFromMysql(String strDate) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return dateFormat.parse(strDate);
+    }
+
 
     /**
      *
      * @param date Date
-     * @return String of param date with format dd/mm/yyyy
+     * @return String of param date with format MMMM yyyyy, e.g. January 2018
      */
     public static String formatMonth(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM yyyy");
@@ -116,6 +125,16 @@ public class Utils {
      */
     public static String formatSimpleDate(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy");
+        return dateFormat.format(date);
+    }
+
+    /**
+     *
+     * @param date Date
+     * @return String of param date with spesific format given
+     */
+    public static String formatSimpleDate(Date date, String format) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format, new Locale("in", "ID"));
         return dateFormat.format(date);
     }
 

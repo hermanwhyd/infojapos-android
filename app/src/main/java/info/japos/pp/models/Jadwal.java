@@ -29,6 +29,12 @@ public class Jadwal {
     @SerializedName("status_presensi")
     @Expose
     private String status;
+    @SerializedName("presensi_id")
+    @Expose
+    private Integer presensiId;
+    @SerializedName("ttl_peserta")
+    @Expose
+    private Integer totalPeserta;
 
     public Jadwal() {
     }
@@ -91,5 +97,19 @@ public class Jadwal {
 
     public void setStatus(String status) {this.status = status;}
 
+    public Integer getTotalPeserta() {
+        return totalPeserta;
+    }
 
+    public void setTotalPeserta(Integer totalPeserta) {
+        this.totalPeserta = totalPeserta;
+    }
+
+    public Integer getPresensiId() {
+        return presensiId;
+    }
+
+    public void setPresensiId(Integer presensiId) {
+        this.presensiId = presensiId;
+    }
 }

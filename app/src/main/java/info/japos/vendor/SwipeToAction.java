@@ -94,7 +94,7 @@ public class SwipeToAction {
             }
         };
 
-        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+        recyclerView.setOnTouchListener( new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent ev) {
                 switch (ev.getAction() & MotionEvent.ACTION_MASK) {

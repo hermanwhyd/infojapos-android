@@ -32,6 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/et_tanggalkbm"
+        android:paddingBottom="@dimen/default_padding"
         android:layout_above="@+id/btn_submit_pp">
             <FrameLayout
                 android:layout_width="match_parent"

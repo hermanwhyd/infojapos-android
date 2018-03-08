@@ -97,7 +97,7 @@ public class DateFromNow {
             logDiff(TimeUnit.MILLISECONDS.toDays(diff));
             daysAgo(diff);
         } else if (diff<TimeUnit.DAYS.toMillis(14)) {
-            // menos que 14 dias = semana passada // TODO: 21/06/2017 melhorar essa regra
+            // menos que 14 dias = semana passada
             logDiff(TimeUnit.MILLISECONDS.toDays(diff));
             lastWeek();
         } else if (userDate.getTime()>getFirstDayOfYear()) {

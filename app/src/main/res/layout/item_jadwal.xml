@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:minWidth="210dp"
+    android:minWidth="250dp"
     android:layout_height="@dimen/item_presensi_height"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardBackgroundColor="@color/white"
     app:cardPreventCornerOverlap="false">
 
     <LinearLayout
+        android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:background="?android:attr/selectableItemBackground"
-        android:layout_height="match_parent"
         android:orientation="horizontal">
 
         <FrameLayout
@@ -35,7 +36,7 @@
 
         <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="@dimen/default_margin"
             android:layout_height="@dimen/item_height">
@@ -45,6 +46,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Kelas"
+                android:singleLine="true"
+                android:ellipsize="end"
                 android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
             <TextView
@@ -53,6 +56,8 @@
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
                 android:text="N/A"
+                android:singleLine="true"
+                android:ellipsize="end"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:textStyle="bold|italic" />
 
@@ -61,24 +66,42 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="N/A"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_gravity="bottom"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:textStyle="bold" />
         </LinearLayout>
-        <FrameLayout
+
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="@dimen/item_height"
-            android:padding="@dimen/default_margin">
+            android:minWidth="75dp">
+
+            <ImageButton
+                android:id="@+id/tv_options"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:cropToPadding="false"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="3dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_dots_vertical"
+                android:tint="@color/icon_gray" />
 
             <info.japos.utils.BabushkaText
                 android:id="@+id/tv_presensi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end|center_vertical"
-                android:textAlignment="center"
-                android:minWidth="50dp"
-                android:padding="5dp"
-                android:text="FINAL" />
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="5dp"
+                android:text="FINAL"
+                android:textAlignment="textEnd" />
 
-        </FrameLayout>
+        </RelativeLayout>
     </LinearLayout>
 </android.support.v7.widget.CardView>

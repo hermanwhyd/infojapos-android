@@ -12,6 +12,6 @@ import retrofit2.http.Path;
  */
 
 public interface KelasService {
-    @GET("class/{timestamp}")
-    Call<List<Kelas>> getClassActive(@Path("timestamp") String activeTimestamp);
+    @GET("class/{timestamp1}/{timestamp2}")
+    Call<List<Kelas>> getClassActive(@Path("timestamp1") String periodStart, @Path("timestamp2") String periodEnd);
 }

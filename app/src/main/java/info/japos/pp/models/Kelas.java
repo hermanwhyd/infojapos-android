@@ -24,12 +24,12 @@ public class Kelas {
     @SerializedName("nama_mt")
     @Expose
     private String namaMajelisTaklim;
+    @SerializedName("ttl_kbm")
+    @Expose
+    private Integer totalKBM;
     @SerializedName("list_siswa")
     @Expose
     private List<Peserta> listPeserta = null;
-
-    public Kelas() {
-    }
 
     public Kelas(Integer id) {
         this.id = id;
@@ -81,6 +81,14 @@ public class Kelas {
 
     public void setNamaMajelisTaklim(String namaMajelisTaklim) {
         this.namaMajelisTaklim = namaMajelisTaklim;
+    }
+
+    public Integer getTotalKBM() {
+        return totalKBM;
+    }
+
+    public void setTotalKBM(Integer totalKBM) {
+        this.totalKBM = totalKBM;
     }
 
     @Override
