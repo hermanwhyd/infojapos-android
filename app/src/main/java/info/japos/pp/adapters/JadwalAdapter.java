@@ -2,6 +2,7 @@ package info.japos.pp.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -22,12 +23,10 @@ import java.util.List;
 
 import info.japos.pp.R;
 import info.japos.pp.models.Jadwal;
-import info.japos.pp.models.PresensiInfoLog;
 import info.japos.pp.models.listener.ItemSelection;
 import info.japos.pp.models.view.SelectableJadwal;
 import info.japos.utils.BabushkaText;
 import info.japos.utils.Utils;
-import retrofit2.Call;
 
 /**
  * Created by HWAHYUDI on 17-Dec-17.
@@ -75,7 +74,31 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
         holder.lokasi.setText(sJadwal.getLokasi());
         holder.jam.setText( sJadwal.getJamMulai() + " \u2014 " + sJadwal.getJamSelesai());
 
-        // Babushka Text
+        // babuskatext statistik
+        holder.statistik.reset();
+        if (!TextUtils.isEmpty(sJadwal.getStatus())) {
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getHadir() + "h")
+                    .textColor(Color.parseColor("#00E676"))
+                    .textSizeRelative(0.75f)
+                    .build());
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder("-")
+                    .textColor(Color.parseColor("#969696"))
+                    .build());
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getAlpa() + "a")
+                    .textColor(Color.parseColor("#FF3D00"))
+                    .textSizeRelative(0.75f)
+                    .build());
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder("-")
+                    .textColor(Color.parseColor("#969696"))
+                    .build());
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getIzin() + "i")
+                    .textColor(Color.parseColor("#FF9100"))
+                    .textSizeRelative(0.75f)
+                    .build());
+            holder.statistik.display();
+        }
+
+        // babuskatext presensi
         holder.presensi.reset();
         if (TextUtils.isEmpty(sJadwal.getStatus()) || sJadwal.getStatus().equalsIgnoreCase("")) {
             holder.presensi.addPiece(new BabushkaText.Piece.Builder("  N/A  ")
@@ -84,7 +107,7 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
                     .build());
         } else {
             holder.presensi.addPiece(new BabushkaText.Piece.Builder("  " + sJadwal.getTotalPeserta() + " siswa  ")
-                    .backgroundColor(Color.parseColor("#53ef8f"))
+                    .backgroundColor(Color.parseColor("#52e9ef"))
                     .textColor(Color.WHITE)
                     .build());
         }
@@ -159,7 +182,7 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
         View view;
         ImageView imageView, checkIcon;
         TextView kelas, lokasi, jam;
-        BabushkaText presensi;
+        BabushkaText presensi, statistik;
         ImageButton menuOpts;
 
         public JadwalHolder(View itemView) {
@@ -171,6 +194,7 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
             lokasi = itemView.findViewById(R.id.tv_lokasi);
             jam = itemView.findViewById(R.id.tv_jam);
             presensi = itemView.findViewById(R.id.tv_presensi);
+            statistik = itemView.findViewById(R.id.tv_statistik);
 
             this.view = itemView;
 

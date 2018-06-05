@@ -33,7 +33,7 @@
         <item
             android:id="@+id/nav_contactdev"
             android:icon="@drawable/ic_whatsapp"
-            android:title="Contact Developer" />
+            android:title="Contact Admin" />
         <item
             android:id="@+id/nav_about"
             android:icon="@drawable/ic_help_circle"

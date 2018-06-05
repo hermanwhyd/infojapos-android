@@ -234,7 +234,6 @@ public class JadwalPresensiFragment extends Fragment
                     switch (response.code()) {
                         case 401:
                             Toast.makeText(getActivity(), commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
-                            ((MainActivity)getActivity()).performLogout();
                             break;
                         case 409:
                             Toast.makeText(getActivity(), commonResponse.getMessage(), Toast.LENGTH_SHORT).show();

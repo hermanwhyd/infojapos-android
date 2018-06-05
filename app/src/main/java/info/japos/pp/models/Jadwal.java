@@ -35,6 +35,15 @@ public class Jadwal {
     @SerializedName("ttl_peserta")
     @Expose
     private Integer totalPeserta;
+    @SerializedName("H")
+    @Expose
+    private Integer hadir;
+    @SerializedName("A")
+    @Expose
+    private Integer alpa;
+    @SerializedName("I")
+    @Expose
+    private Integer izin;
 
     public Jadwal() {
     }
@@ -111,5 +120,29 @@ public class Jadwal {
 
     public void setPresensiId(Integer presensiId) {
         this.presensiId = presensiId;
+    }
+
+    public Integer getHadir() {
+        return hadir;
+    }
+
+    public void setHadir(Integer hadir) {
+        this.hadir = hadir;
+    }
+
+    public Integer getAlpa() {
+        return alpa;
+    }
+
+    public void setAlpa(Integer alpa) {
+        this.alpa = alpa;
+    }
+
+    public Integer getIzin() {
+        return izin;
+    }
+
+    public void setIzin(Integer izin) {
+        this.izin = izin;
     }
 }
