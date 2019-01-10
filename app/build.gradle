@@ -14,7 +14,7 @@ android {
         applicationId "info.japos.pp.absensi"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 7
+        versionCode 8
         versionName "1.0"
         multiDexEnabled false //important
         signingConfig signingConfigs.InfoJapos
@@ -40,7 +40,7 @@ android {
             signingConfig signingConfigs.InfoJapos
         }
     }
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.2'
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -77,7 +77,9 @@ dependencies {
     // compile 'com.github.thomper:sweet-alert-dialog:v1.4.0'
     // compile 'org.hashids:hashids:1.0.3'
     implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
-    implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0'
+    implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0'/**
+     * Mengambil data jadwal kelas dari API
+     */
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
     //    compile 'com.whiteelephant:monthandyearpicker:1.2.0'
     implementation 'com.borax12.materialdaterangepicker:library:1.9'
@@ -86,4 +88,8 @@ dependencies {
     }
     implementation 'de.codecrafters.tableview:tableview:2.8.0'
     implementation 'com.github.armcha:LuseenBottomNavigation:1.8.2'
+    implementation 'com.muddzdev:styleabletoast:2.1.2'
+    implementation ('com.github.ganfra:material-spinner:2.0.0'){
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
 }

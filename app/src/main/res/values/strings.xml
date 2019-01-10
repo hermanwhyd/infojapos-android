@@ -16,12 +16,15 @@
     <string name="title_activity_schedule">Jadwal KBM</string>
     <string name="title_activity_presensi">Kehadiran</string>
     <string name="title_fragment_statistik">Statistik Kelas</string>
+    <string name="title_fragment_statistik_siswa">Statistik Peserta</string>
     <string name="title_activity_statistik">Statistik Kehadiran</string>
 
     <!--text view-->
     <string name="activeclass_noresult">Tidak ada kelas aktif di bulan ini</string>
     <string name="kbm_noresult">Tidak ada jadwal KBM di tanggal ini</string>
-    <string name="kbm_error">Terjadi error koneksi/diserver.\nTarik kebawah untuk mencoba lagi</string>
+    <string name="peserta_noresult">Tidak ada peserta di kelas ini</string>
+    <string name="kelas_no_selected">Silakan pilih kelas untuk melihat peserta</string>
+    <string name="result_error">Terjadi error koneksi/diserver.\nTarik kebawah untuk mencoba lagi</string>
     <string name="presensi_noresult">Kelas ini tidak memiliki peserta</string>
     <string name="presensi_error">Tarik kebawah untuk update list</string>
     <string name="presensi_otherinfo">%s &#x25cf; %s</string>
@@ -31,7 +34,7 @@
     <string name="progress_connecting_dialog">Mengambil Data</string>
     <string name="progress_please_wait">Mohon tunggu&#8230;</string>
     <string name="progress_registering_dialog">Registering&#8230;</string>
-    <string name="progress_createnewprecense">Mohon tunggu!\nSetelah selesai layar baru akan tapil dengan list peserta</string>
+    <string name="progress_createnewprecense">Mohon tunggu!\nSetelah selesai layar baru akan tampil dengan list peserta</string>
 
     <!--Message-->
     <string name="network_error">Network error, silakan cek koneksi internet Anda</string>

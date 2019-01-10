@@ -56,6 +56,7 @@ import info.japos.pp.retrofit.PresensiService;
 import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.view.CustomToast;
 import info.japos.pp.view.EqualSpacingItemDecoration;
+import info.japos.pp.view.MessageBoxDialog;
 import info.japos.utils.BabushkaText;
 import info.japos.utils.ErrorUtils;
 import info.japos.utils.GsonUtil;
@@ -281,9 +282,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         if (this.izinReasons.isEmpty()) {
             Resources res = getResources();
             String[] reason = res.getStringArray(R.array.izin_alasan);
-            for (String alasan : reason) {
-                this.izinReasons.add(alasan);
-            }
+            this.izinReasons.addAll(Arrays.asList(reason));
         }
 
         Integer idxChecked = this.izinReasons.isEmpty()
@@ -370,10 +369,10 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + GsonUtil.getInstance().toJson(commonResponse));
                     switch (response.code()) {
                         case 401:
-                            Toast.makeText(PresensiActivity.this, commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            MessageBoxDialog.Show(PresensiActivity.this, "Informasi", commonResponse.getMessage());
                             break;
                         case 403:
-                            Toast.makeText(PresensiActivity.this, commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            MessageBoxDialog.Show(PresensiActivity.this, "Informasi", commonResponse.getMessage());
                             break;
                         case 500:
                             Toast.makeText(PresensiActivity.this, "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();

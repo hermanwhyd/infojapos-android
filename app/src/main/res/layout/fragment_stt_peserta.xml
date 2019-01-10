@@ -1,0 +1,68 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="info.japos.pp.fragments.SttPesertaFragment">
+
+    <TextView
+        android:id="@+id/tv_subheader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/sp_kelaskbm"
+        android:layout_marginTop="@dimen/default_margin"
+        android:textSize="12sp"
+        android:gravity="center_horizontal"
+        android:text="Silakan pilih Kelas untuk memilih peserta" />
+
+    <fr.ganfra.materialspinner.MaterialSpinner
+        android:id="@+id/sp_kelaskbm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_subheader"
+        android:layout_margin="8dp"
+        app:ms_baseColor="@color/text_sub_gray"
+        app:ms_hint="Pilih Kelas"
+        app:ms_enableErrorLabel="false"
+        app:ms_enableFloatingLabel="false" />
+
+    <!-- Content -->
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_peserta"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/default_padding"
+        android:layout_below="@+id/sp_kelaskbm"
+        android:layout_above="@+id/btn_submit_pp">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/tv_no_result"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:gravity="center_horizontal"
+                android:text="@string/peserta_noresult"
+                android:visibility="gone"/>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_peserta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"/>
+        </FrameLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <Button
+        android:id="@+id/btn_submit_pp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimaryDark"
+        android:textColor="@color/white"
+        android:enabled="false"
+        android:alpha="0.5"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Next"/>
+
+</RelativeLayout>

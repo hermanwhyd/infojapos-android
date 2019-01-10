@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/item_presensi_height"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:minWidth="200dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardPreventCornerOverlap="false">
+
+    <RelativeLayout
+        android:background="?android:attr/selectableItemBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/iv_presensi"
+            android:layout_width="@dimen/item_presensi_height"
+            android:layout_height="@dimen/item_presensi_height"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="TextDrawable or Logo" />
+
+        <ImageView
+            android:id="@+id/check_icon"
+            android:visibility="gone"
+            android:layout_width="@dimen/item_presensi_height"
+            android:layout_height="@dimen/item_presensi_height"
+            android:src="@drawable/ic_check"
+            android:background="@color/colorPrimaryTrans"
+            android:contentDescription="Checklist if selected, overide image_view below"/>
+
+        <TextView
+            android:id="@+id/tv_nama_panggilan"
+            android:layout_toEndOf="@id/iv_presensi"
+            android:singleLine="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nama Panggilan"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_nama_lengkap"
+            android:layout_below="@id/tv_nama_panggilan"
+            android:layout_alignStart="@id/tv_nama_panggilan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nama Lengkap"
+            android:textSize="12sp"/>
+
+        <TextView
+            android:id="@+id/tv_info_others"
+            android:layout_below="@id/tv_nama_lengkap"
+            android:layout_alignStart="@id/tv_nama_lengkap"
+            android:layout_alignParentBottom="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/presensi_otherinfo"
+            android:gravity="center_vertical"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

@@ -3,6 +3,7 @@ package info.japos.pp.adapters;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,7 @@ import info.japos.pp.R;
 import info.japos.pp.models.Kelas;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.utils.BabushkaText;
+import info.japos.utils.GsonUtil;
 import info.japos.utils.Utils;
 
 /**
@@ -59,7 +61,7 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
     @Override
     public void onBindViewHolder(final StatistikViewAdapter.StatistikViewHolder holder, int position) {
         Kelas kelas = dataSet.get(position);
-
+        Log.d("SttPsertaAdapter", "Peserta" + position + " -> " + GsonUtil.getInstance().toJson(kelas));
         String[] splitNama = kelas.getKelas().split(" ", 2);
         String strInisial = (splitNama.length == 1) ? String.valueOf(kelas.getKelas().charAt(0)) : String.valueOf(splitNama[0].charAt(0)) + String.valueOf(splitNama[1].charAt(0));
         TextDrawable drawable = tBuilder.build(strInisial, mColorGenerator.getColor(kelas.getKelas()));

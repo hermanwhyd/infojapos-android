@@ -70,7 +70,7 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (mListener != null) {
-            mListener.onFragmentInteraction("Statistik");
+            mListener.onFragmentInteraction("Statistik Kelas");
         }
 
         return inflater.inflate(R.layout.fragment_statistik, container,false);
@@ -147,9 +147,7 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
         outState.putLong("TIMESTAMP2", datePickerEnd.getTimeInMillis());
     }
 
-    /**
-     * Mengambil data jadwal kelas dari API
-     */
+
     private void getKelasList(Calendar cal, Calendar cal2) {
         Log.i(TAG, "Fetching KelasList on '" + Utils.formatApiDate(cal.getTime()) + "' Started");
 
@@ -191,7 +189,7 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + response.raw());
 
                     showKelasList(new ArrayList<>(0));
-                    noResultInfo.setText(R.string.kbm_error);
+                    noResultInfo.setText(R.string.result_error);
                     noResultInfo.setVisibility(View.VISIBLE);
                     switch (response.code()) {
                         case 500:

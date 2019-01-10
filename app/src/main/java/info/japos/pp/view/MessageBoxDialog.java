@@ -19,4 +19,13 @@ public class MessageBoxDialog {
                 .autoDismiss(Boolean.TRUE)
                 .show();
     }
+
+    public static void Show(Context context, String title, String content) {
+        new MaterialDialog.Builder(context)
+                .title(title)
+                .content(content)
+                .positiveText("OK")
+                .autoDismiss(Boolean.TRUE)
+                .show();
+    }
 }

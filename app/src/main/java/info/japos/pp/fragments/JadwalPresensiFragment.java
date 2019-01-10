@@ -38,7 +38,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
-import info.japos.pp.activities.MainActivity;
 import info.japos.pp.activities.PresensiActivity;
 import info.japos.pp.adapters.JadwalAdapter;
 import info.japos.pp.helper.SessionManager;
@@ -233,10 +232,13 @@ public class JadwalPresensiFragment extends Fragment
                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + GsonUtil.getInstance().toJson(commonResponse));
                     switch (response.code()) {
                         case 401:
-                            Toast.makeText(getActivity(), commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
+                            break;
+                        case 403:
+                            MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
                             break;
                         case 409:
-                            Toast.makeText(getActivity(), commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
                             break;
                         case 500:
                             Toast.makeText(getActivity(), "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
@@ -313,7 +315,7 @@ public class JadwalPresensiFragment extends Fragment
                                  Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + response.raw());
 
                                  showJadwalKBM(new ArrayList<>(0));
-                                 noResultInfo.setText(R.string.kbm_error);
+                                 noResultInfo.setText(R.string.result_error);
                                  noResultInfo.setVisibility(View.VISIBLE);
                                  switch (response.code()) {
                                      case 500:
@@ -330,7 +332,7 @@ public class JadwalPresensiFragment extends Fragment
                          public void onFailure(Call<List<SelectableJadwal>> call, Throwable t) {
                              swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
                              Log.e(TAG, t.getMessage(), t);
-                             noResultInfo.setText(R.string.kbm_error);
+                             noResultInfo.setText(R.string.result_error);
                              noResultInfo.setVisibility(View.VISIBLE);
                              showNetworkErrorSnackbar();
                          }
@@ -533,10 +535,13 @@ public class JadwalPresensiFragment extends Fragment
                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + GsonUtil.getInstance().toJson(commonResponse));
                     switch (response.code()) {
                         case 401:
-                            Toast.makeText(getActivity(), commonResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                            MessageBoxDialog.Show(getActivity(), "Informasi", commonResponse.getMessage());
+                            break;
+                        case 403:
+                            MessageBoxDialog.Show(getActivity(), "Informasi", commonResponse.getMessage());
                             break;
                         case 409:
-                            MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
+                            MessageBoxDialog.Show(getActivity(), "Informasi", commonResponse.getMessage());
                             break;
                         case 500:
                             Toast.makeText(getActivity(), "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
@@ -554,7 +559,7 @@ public class JadwalPresensiFragment extends Fragment
             public void onFailure(Call<CommonResponse> call, Throwable t) {
                 swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
                 Log.e(TAG, t.getMessage(), t);
-                noResultInfo.setText(R.string.kbm_error);
+                noResultInfo.setText(R.string.result_error);
                 noResultInfo.setVisibility(View.VISIBLE);
                 showNetworkErrorSnackbar();
             }

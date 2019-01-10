@@ -27,6 +27,7 @@ import info.japos.pp.R;
 import info.japos.pp.constants.AppConstant;
 import info.japos.pp.fragments.AboutDialog;
 import info.japos.pp.fragments.JadwalPresensiFragment;
+import info.japos.pp.fragments.SttPesertaFragment;
 import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.fragments.StatistikFragment;
 import info.japos.pp.helper.SessionManager;
@@ -136,6 +137,8 @@ public class MainActivity extends AppCompatActivity
             fragment = new JadwalPresensiFragment();
         } else if (id == R.id.nav_statistik) {
             fragment = new StatistikFragment();
+        } else if (id == R.id.nav_statistik_siswa) {
+            fragment = new SttPesertaFragment();
         } else if (id == R.id.nav_contactdev) {
             String url = getResources().getString(R.string.urlwa);
             Intent i = new Intent(Intent.ACTION_VIEW);

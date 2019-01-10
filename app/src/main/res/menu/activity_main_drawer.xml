@@ -22,6 +22,10 @@
             android:id="@+id/nav_statistik"
             android:icon="@drawable/ic_chart_bar"
             android:title="@string/title_fragment_statistik" />
+        <item
+            android:id="@+id/nav_statistik_siswa"
+            android:icon="@drawable/ic_chart_scatterplot"
+            android:title="@string/title_fragment_statistik_siswa" />
     </group>
     <group
         android:id="@+id/SlaveGroup"

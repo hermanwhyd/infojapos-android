@@ -77,21 +77,19 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
         // babuskatext statistik
         holder.statistik.reset();
         if (!TextUtils.isEmpty(sJadwal.getStatus())) {
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getHadir() + "h")
-                    .textColor(Color.parseColor("#00E676"))
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getHadir() + " hdr")
+                    .textColor(Color.parseColor("#52e9ef"))
                     .textSizeRelative(0.75f)
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder("-")
-                    .textColor(Color.parseColor("#969696"))
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(" ")
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getAlpa() + "a")
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getAlpa() + " alp")
                     .textColor(Color.parseColor("#FF3D00"))
                     .textSizeRelative(0.75f)
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder("-")
-                    .textColor(Color.parseColor("#969696"))
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(" ")
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getIzin() + "i")
+            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getIzin() + " izn")
                     .textColor(Color.parseColor("#FF9100"))
                     .textSizeRelative(0.75f)
                     .build());
@@ -107,7 +105,7 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
                     .build());
         } else {
             holder.presensi.addPiece(new BabushkaText.Piece.Builder("  " + sJadwal.getTotalPeserta() + " siswa  ")
-                    .backgroundColor(Color.parseColor("#52e9ef"))
+                    .backgroundColor(Color.parseColor("#00E676"))
                     .textColor(Color.WHITE)
                     .build());
         }

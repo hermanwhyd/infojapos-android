@@ -22,7 +22,7 @@ public class ServiceGenerator {
             new OkHttpClient.Builder()
 //                    .addInterceptor(new ApiTokenAdderInterceptor())
                     .addInterceptor(new AddHeaderInterceptor())
-//                    .addInterceptor(new LoggingInterceptor())
+                    //.addInterceptor(new LoggingInterceptor())
                     .build();
 
     private static Gson gson = new GsonBuilder()
