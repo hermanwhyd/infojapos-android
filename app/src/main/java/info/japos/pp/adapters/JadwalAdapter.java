@@ -2,11 +2,10 @@ package info.japos.pp.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,13 +17,13 @@ import android.widget.TextView;
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.List;
 
 import info.japos.pp.R;
-import info.japos.pp.models.Jadwal;
-import info.japos.pp.models.listener.ItemSelection;
-import info.japos.pp.models.view.SelectableJadwal;
+import info.japos.pp.models.kbm.common.ItemSectionInterface;
+import info.japos.pp.models.kbm.jadwal.Jadwal;
+import info.japos.pp.models.kbm.common.SectionGroupTitle;
 import info.japos.utils.BabushkaText;
 import info.japos.utils.Utils;
 
@@ -32,158 +31,196 @@ import info.japos.utils.Utils;
  * Created by HWAHYUDI on 17-Dec-17.
  */
 
-public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHolder> {
-    private Context context;
-    private List<SelectableJadwal> mValues;
-    private boolean isMultiSelectionEnable = false;
-    private ItemSelection listenet;
+public class JadwalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private WeakReference<Context> mContextWeakReference;
+    private ArrayList<ItemSectionInterface> mJadwalAndSectionList;
+    private OnItemSelectedListener listener;
+    private SparseBooleanArray mSelectedItemsIds;
+
+    public static final int SECTION_VIEW = 0;
+    private static final int CONTENT_VIEW = 1;
 
     // TextDrawable
     private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL; // or use DEFAULT
     private TextDrawable.IBuilder tBuilder = TextDrawable.builder()
             .beginConfig()
-                .bold()
-                .toUpperCase()
+            .bold()
+            .toUpperCase()
             .endConfig()
             .rect();
 
-    public JadwalAdapter(Context context, ItemSelection onItemSelectedListener, List<SelectableJadwal> items, boolean isMultiSelectionEnable) {
-        this.context = context;
-        this.listenet = onItemSelectedListener;
-        this.isMultiSelectionEnable = isMultiSelectionEnable;
-        mValues = items;
+    public JadwalAdapter(ArrayList<ItemSectionInterface> dataSet, Context context, OnItemSelectedListener listener) {
+        this.mContextWeakReference = new WeakReference<>(context);
+        this.listener = listener;
+        mJadwalAndSectionList = dataSet;
+
+        // init
+        mSelectedItemsIds = new SparseBooleanArray();
     }
 
-
-    @Override
-    public JadwalHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_jadwal, parent,false);
-        return new JadwalHolder(view);
+    public interface OnItemSelectedListener {
+        void onMenuAction(Jadwal jadwal, MenuItem menuItem);
+        void itemSelectionChanged(Boolean isAnyItemSelected);
     }
 
     @Override
-    public void onBindViewHolder(final JadwalHolder holder, int position) {
-        final SelectableJadwal sJadwal = mValues.get(position);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = mContextWeakReference.get();
+        if (viewType == SECTION_VIEW) {
+            return new SectionViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_jadwal_group, parent, false));
+        }
+        return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_jadwal, parent, false), context);
+    }
 
-        if (!isMultiSelectionEnable) updateSelectedState(holder, sJadwal);
+    @Override
+    public int getItemViewType(int position) {
+        if (mJadwalAndSectionList.get(position).isSection()) {
+            return SECTION_VIEW;
+        } else {
+            return CONTENT_VIEW;
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        Context context = mContextWeakReference.get();
+        if (context == null) return;
+
+        if (SECTION_VIEW == getItemViewType(position)) {
+            SectionViewHolder sectionViewHolder = (SectionViewHolder) holder;
+            SectionGroupTitle sectionItem = ((SectionGroupTitle) mJadwalAndSectionList.get(position));
+
+            sectionViewHolder.title.setText(sectionItem.title);
+            return;
+        }
+
+        MyViewHolder myViewHolder = (MyViewHolder) holder;
+        Jadwal sJadwal = (Jadwal)mJadwalAndSectionList.get(position);
+
         String[] splitNama = sJadwal.getKelas().split(" ", 2);
         String strInisial = (splitNama.length == 1) ? String.valueOf(sJadwal.getKelas().charAt(0)) : String.valueOf(splitNama[0].charAt(0)) + String.valueOf(splitNama[1].charAt(0));
         TextDrawable drawable = tBuilder.build(strInisial, mColorGenerator.getColor(sJadwal.getKelas()));
-        holder.imageView.setImageDrawable(drawable);
-        holder.kelas.setText(sJadwal.getKelas());
-        holder.lokasi.setText(sJadwal.getLokasi());
-        holder.jam.setText( sJadwal.getJamMulai() + " \u2014 " + sJadwal.getJamSelesai());
+        myViewHolder.imageView.setImageDrawable(drawable);
+        myViewHolder.kelas.setText(sJadwal.getKelas());
+        myViewHolder.lokasi.setText(sJadwal.getLokasi());
+        myViewHolder.jam.setText(sJadwal.getJamMulai() + " \u2014 " + sJadwal.getJamSelesai());
 
         // babuskatext statistik
-        holder.statistik.reset();
+        myViewHolder.statistik.reset();
         if (!TextUtils.isEmpty(sJadwal.getStatus())) {
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getHadir() + " hdr")
+            myViewHolder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getHadir() + " hdr")
                     .textColor(Color.parseColor("#52e9ef"))
                     .textSizeRelative(0.75f)
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(" ")
+            myViewHolder.statistik.addPiece(new BabushkaText.Piece.Builder(" ")
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getAlpa() + " alp")
+            myViewHolder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getAlpa() + " alp")
                     .textColor(Color.parseColor("#FF3D00"))
                     .textSizeRelative(0.75f)
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(" ")
+            myViewHolder.statistik.addPiece(new BabushkaText.Piece.Builder(" ")
                     .build());
-            holder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getIzin() + " izn")
+            myViewHolder.statistik.addPiece(new BabushkaText.Piece.Builder(sJadwal.getIzin() + " izn")
                     .textColor(Color.parseColor("#FF9100"))
                     .textSizeRelative(0.75f)
                     .build());
-            holder.statistik.display();
+            myViewHolder.statistik.display();
         }
 
         // babuskatext presensi
-        holder.presensi.reset();
+        myViewHolder.presensi.reset();
         if (TextUtils.isEmpty(sJadwal.getStatus()) || sJadwal.getStatus().equalsIgnoreCase("")) {
-            holder.presensi.addPiece(new BabushkaText.Piece.Builder("  N/A  ")
+            myViewHolder.presensi.addPiece(new BabushkaText.Piece.Builder("  N/A  ")
                     .backgroundColor(Color.parseColor("#f4ac41"))
                     .textColor(Color.WHITE)
                     .build());
         } else {
-            holder.presensi.addPiece(new BabushkaText.Piece.Builder("  " + sJadwal.getTotalPeserta() + " siswa  ")
+            myViewHolder.presensi.addPiece(new BabushkaText.Piece.Builder("  " + sJadwal.getTotalPeserta() + " siswa  ")
                     .backgroundColor(Color.parseColor("#00E676"))
                     .textColor(Color.WHITE)
                     .build());
         }
-        holder.presensi.display();
+        myViewHolder.presensi.display();
+
+        // to remove selection
+        onListItemSelect(myViewHolder, sJadwal);
 
         // set item click listener
-        holder.itemView.setOnClickListener(view -> {
-            if (!isMultiSelectionEnable) {
-                for (SelectableJadwal item : mValues) {
-                    if (!item.equals(sJadwal) && item.isSelected()) item.setSelected(Boolean.FALSE);
-                }
-                notifyDataSetChanged();
+        myViewHolder.itemView.setOnClickListener(view -> {
+            // remove past selection
+            for (int i=0; i<mSelectedItemsIds.size(); i++) {
+                if (mSelectedItemsIds.keyAt(i) != sJadwal.getId()) mSelectedItemsIds.delete(mSelectedItemsIds.keyAt(i));
             }
+            notifyDataSetChanged();
 
-            Boolean isSelected = !sJadwal.isSelected();
-            sJadwal.setSelected(isSelected);
-            updateSelectedState(holder, sJadwal);
-            if (isSelected && isMultiSelectionEnable) {
-                listenet.itemSelectionChanged(Boolean.TRUE);
+            toggleSelectionState(myViewHolder, sJadwal);
+            if (getSelectedCount() > 0) {
+                listener.itemSelectionChanged(Boolean.TRUE);
             } else {
-                listenet.itemSelectionChanged(isAnyKelasSelected());
+                listener.itemSelectionChanged(Boolean.FALSE);
             }
         });
     }
 
-    public List<Jadwal> getSelectedJadwal() {
-        List<Jadwal> result = new ArrayList<>(0);
-        for (SelectableJadwal item : mValues) {
-            if (item.isSelected()) result.add(item);
-        }
+    @Override
+    public int getItemCount() {
+        return mJadwalAndSectionList.size();
+    }
+
+    // Get total selected count
+    public int getSelectedCount() {
+        return mSelectedItemsIds.size();
+    }
+
+    // Return all selected ids
+    public SparseBooleanArray getSelectedIds() {
+        return mSelectedItemsIds;
+    }
+
+    // Return all ids
+    public Jadwal getSelectedItem() {
+        Jadwal result;
+        result = (Jadwal) mJadwalAndSectionList.get(mJadwalAndSectionList.indexOf(new Jadwal(mSelectedItemsIds.keyAt(0))));
 
         return result;
     }
 
     /**
-     * Get single selected jadwal
-     * @return
+     * Hilight itemview yang di klik
+     *
+     * @param holder
+     * @param jadwal
      */
-    public SelectableJadwal getSingleSelectedJadwal() {
-        for (SelectableJadwal item : mValues) {
-            if (item.isSelected()) return  item;
-        }
-
-        return null;
-    }
-
-    public Boolean isAnyKelasSelected() {
-        for (SelectableJadwal item : mValues) {
-            if (item.isSelected()) return Boolean.TRUE;
-        }
-
-        return Boolean.FALSE;
-    }
-
-    @Override
-    public int getItemCount() {
-        return mValues.size();
-    }
-
-    private void updateSelectedState(JadwalHolder holder, SelectableJadwal sJadwal) {
-        Log.d(this.getClass().getSimpleName(), sJadwal.getKelas() + "->" + sJadwal.isSelected());
-        if (sJadwal.isSelected()) {
-            holder.view.setBackgroundColor(Utils.getColor(context, R.color.item_selected_background));
-            holder.checkIcon.setVisibility(View.VISIBLE);
+    public void toggleSelectionState(MyViewHolder holder, final Jadwal jadwal) {
+        boolean selection = !mSelectedItemsIds.get(jadwal.getId());
+        if (selection) {
+            mSelectedItemsIds.put(jadwal.getId(), Boolean.TRUE);
         } else {
-            holder.view.setBackgroundColor(Utils.getColor(context, R.color.item_background));
+            mSelectedItemsIds.delete(jadwal.getId());
+        }
+        notifyItemChanged(holder.getAdapterPosition());
+    }
+
+    private void onListItemSelect(MyViewHolder holder, final Jadwal jadwal) {
+        boolean selection = mSelectedItemsIds.get(jadwal.getId());
+        Context context = mContextWeakReference.get();
+        if (selection) {
+            holder.checkIcon.setVisibility(View.VISIBLE);
+            holder.view.setBackgroundColor(Utils.getColor(context, R.color.item_selected_background));
+        } else {
             holder.checkIcon.setVisibility(View.GONE);
+            holder.view.setBackgroundColor(Utils.getColor(context, R.color.item_background));
         }
     }
 
-    class JadwalHolder extends RecyclerView.ViewHolder implements PopupMenu.OnMenuItemClickListener {
+    public class MyViewHolder extends RecyclerView.ViewHolder implements PopupMenu.OnMenuItemClickListener {
         View view;
         ImageView imageView, checkIcon;
         TextView kelas, lokasi, jam;
         BabushkaText presensi, statistik;
         ImageButton menuOpts;
 
-        public JadwalHolder(View itemView) {
+        public MyViewHolder(View itemView, final Context context) {
             super(itemView);
             menuOpts = itemView.findViewById(R.id.tv_options);
             imageView = itemView.findViewById(R.id.image_view);
@@ -202,7 +239,7 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
                 //inflating menu from xml resource
                 popup.inflate(R.menu.jadwal_options);
                 //adding click listener
-                popup.setOnMenuItemClickListener(JadwalAdapter.JadwalHolder.this);
+                popup.setOnMenuItemClickListener(MyViewHolder.this);
                 //displaying the popup
                 popup.show();
             });
@@ -210,11 +247,20 @@ public class JadwalAdapter extends RecyclerView.Adapter<JadwalAdapter.JadwalHold
 
         @Override
         public boolean onMenuItemClick(MenuItem item) {
-            if (listenet != null) {
-                SelectableJadwal s = mValues.get(getAdapterPosition());
-                listenet.menuSelection(item, s.getPresensiId(), s);
+            if (listener != null) {
+                Jadwal s = (Jadwal) mJadwalAndSectionList.get(getAdapterPosition());
+                listener.onMenuAction(s, item);
             }
             return false;
+        }
+    }
+
+    public class SectionViewHolder extends RecyclerView.ViewHolder {
+        TextView title;
+
+        public SectionViewHolder(View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.tv_group_title);
         }
     }
 }

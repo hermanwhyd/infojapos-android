@@ -1,13 +1,17 @@
-package info.japos.pp.models;
+package info.japos.pp.models.kbm.jadwal;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.Objects;
+
+import info.japos.pp.models.kbm.common.ItemSectionInterface;
 
 /**
  * Created by HWAHYUDI on 09-Dec-17.
  */
 
-public class Jadwal {
+public class Jadwal implements ItemSectionInterface {
     @SerializedName("id")
     @Expose
     private Integer id;
@@ -17,9 +21,12 @@ public class Jadwal {
     @SerializedName("lokasi")
     @Expose
     private String lokasi;
-    @SerializedName("pembinaan")
+    @SerializedName("lv_pembinaan")
     @Expose
     private String pembinaan;
+    @SerializedName("lv_pembina")
+    @Expose
+    private String pembina;
     @SerializedName("jam_mulai")
     @Expose
     private String jamMulai;
@@ -32,6 +39,9 @@ public class Jadwal {
     @SerializedName("presensi_id")
     @Expose
     private Integer presensiId;
+    @SerializedName("label_jadwal")
+    @Expose
+    private Integer labelJadwal;
     @SerializedName("ttl_peserta")
     @Expose
     private Integer totalPeserta;
@@ -48,14 +58,30 @@ public class Jadwal {
     public Jadwal() {
     }
 
-    public Jadwal(Integer id, String kelas, String lokasi, String pembinaan, String jamMulai, String jamSelesi, String status) {
+    public Jadwal(Integer id) {
+        this.id = id;
+    }
+
+    public Jadwal(Integer id, String kelas, String lokasi, String pembinaan, String pembina, String jamMulai, String jamSelesai, String status, Integer presensiId, Integer labelJadwal, Integer totalPeserta, Integer hadir, Integer alpa, Integer izin) {
         this.id = id;
         this.kelas = kelas;
         this.lokasi = lokasi;
         this.pembinaan = pembinaan;
+        this.pembina = pembina;
         this.jamMulai = jamMulai;
-        this.jamSelesai = jamSelesi;
+        this.jamSelesai = jamSelesai;
         this.status = status;
+        this.presensiId = presensiId;
+        this.labelJadwal = labelJadwal;
+        this.totalPeserta = totalPeserta;
+        this.hadir = hadir;
+        this.alpa = alpa;
+        this.izin = izin;
+    }
+
+    @Override
+    public boolean isSection() {
+        return false;
     }
 
     public Integer getId() {
@@ -74,9 +100,13 @@ public class Jadwal {
         this.kelas = kelas;
     }
 
-    public String getLokasi() {return lokasi;}
+    public String getLokasi() {
+        return lokasi;
+    }
 
-    public void setLokasi(String lokasi) {this.lokasi = lokasi;}
+    public void setLokasi(String lokasi) {
+        this.lokasi = lokasi;
+    }
 
     public String getPembinaan() {
         return pembinaan;
@@ -84,6 +114,14 @@ public class Jadwal {
 
     public void setPembinaan(String pembinaan) {
         this.pembinaan = pembinaan;
+    }
+
+    public String getPembina() {
+        return pembina;
+    }
+
+    public void setPembina(String pembina) {
+        this.pembina = pembina;
     }
 
     public String getJamMulai() {
@@ -102,16 +140,12 @@ public class Jadwal {
         this.jamSelesai = jamSelesai;
     }
 
-    public String getStatus() {return status;}
-
-    public void setStatus(String status) {this.status = status;}
-
-    public Integer getTotalPeserta() {
-        return totalPeserta;
+    public String getStatus() {
+        return status;
     }
 
-    public void setTotalPeserta(Integer totalPeserta) {
-        this.totalPeserta = totalPeserta;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Integer getPresensiId() {
@@ -120,6 +154,22 @@ public class Jadwal {
 
     public void setPresensiId(Integer presensiId) {
         this.presensiId = presensiId;
+    }
+
+    public Integer getLabelJadwal() {
+        return labelJadwal;
+    }
+
+    public void setLabelJadwal(Integer labelJadwal) {
+        this.labelJadwal = labelJadwal;
+    }
+
+    public Integer getTotalPeserta() {
+        return totalPeserta;
+    }
+
+    public void setTotalPeserta(Integer totalPeserta) {
+        this.totalPeserta = totalPeserta;
     }
 
     public Integer getHadir() {
@@ -144,5 +194,18 @@ public class Jadwal {
 
     public void setIzin(Integer izin) {
         this.izin = izin;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Jadwal jadwal = (Jadwal) o;
+        return Objects.equals(id, jadwal.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

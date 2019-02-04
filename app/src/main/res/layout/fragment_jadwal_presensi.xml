@@ -12,7 +12,7 @@
         android:layout_marginTop="@dimen/default_margin"
         android:textSize="12sp"
         android:gravity="center_horizontal"
-        android:text="Silakan pilih tanggal KBM sebelum mulai input data absensi" />
+        android:text="Silakan pilih tanggal KBM sebelum mulai input data presensi" />
 
     <EditText
         android:id="@+id/et_tanggalkbm"

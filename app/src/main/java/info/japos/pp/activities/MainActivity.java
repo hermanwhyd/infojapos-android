@@ -27,9 +27,9 @@ import info.japos.pp.R;
 import info.japos.pp.constants.AppConstant;
 import info.japos.pp.fragments.AboutDialog;
 import info.japos.pp.fragments.JadwalPresensiFragment;
+import info.japos.pp.fragments.SttKelasFragment;
 import info.japos.pp.fragments.SttPesertaFragment;
 import info.japos.pp.models.listener.OnFragmentInteractionListener;
-import info.japos.pp.fragments.StatistikFragment;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.models.ApplicationInfo.ApplicationInfo;
 import info.japos.pp.models.ApplicationInfo.VersionInfo;
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_absensi) {
             fragment = new JadwalPresensiFragment();
         } else if (id == R.id.nav_statistik) {
-            fragment = new StatistikFragment();
+            fragment = new SttKelasFragment();
         } else if (id == R.id.nav_statistik_siswa) {
             fragment = new SttPesertaFragment();
         } else if (id == R.id.nav_contactdev) {

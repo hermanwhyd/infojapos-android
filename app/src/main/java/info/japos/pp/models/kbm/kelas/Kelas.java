@@ -1,13 +1,16 @@
-package info.japos.pp.models;
+package info.japos.pp.models.kbm.kelas;
 
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import info.japos.pp.models.Peserta;
+import info.japos.pp.models.kbm.common.ItemSectionInterface;
+
 /**
  * Created by HWAHYUDI on 06-Dec-17.
  */
-public class Kelas {
+public class Kelas implements ItemSectionInterface {
 
     @SerializedName("id")
     @Expose
@@ -17,7 +20,7 @@ public class Kelas {
     private String kelas;
     @SerializedName("lv_pembinaan")
     @Expose
-    private String lvPembinaan;
+    private String pembinaan;
     @SerializedName("lv_pembina")
     @Expose
     private String lvPembina;
@@ -51,12 +54,12 @@ public class Kelas {
         this.kelas = kelas;
     }
 
-    public String getLvPembinaan() {
-        return lvPembinaan;
+    public String getPembinaan() {
+        return pembinaan;
     }
 
-    public void setLvPembinaan(String lvPembinaan) {
-        this.lvPembinaan = lvPembinaan;
+    public void setPembinaan(String pembinaan) {
+        this.pembinaan = pembinaan;
     }
 
     public String getLvPembina() {
@@ -67,14 +70,6 @@ public class Kelas {
         this.lvPembina = lvPembina;
     }
 
-    public List<Peserta> getListPeserta() {
-        return listPeserta;
-    }
-
-    public void setListPeserta(List<Peserta> listPeserta) {
-        this.listPeserta = listPeserta;
-    }
-
     public String getNamaMajelisTaklim() {
         return namaMajelisTaklim;
     }
@@ -83,12 +78,25 @@ public class Kelas {
         this.namaMajelisTaklim = namaMajelisTaklim;
     }
 
+    public List<Peserta> getListPeserta() {
+        return listPeserta;
+    }
+
+    public void setListPeserta(List<Peserta> listPeserta) {
+        this.listPeserta = listPeserta;
+    }
+
     public Integer getTotalKBM() {
         return totalKBM;
     }
 
     public void setTotalKBM(Integer totalKBM) {
         this.totalKBM = totalKBM;
+    }
+
+    @Override
+    public boolean isSection() {
+        return false;
     }
 
     @Override

@@ -43,7 +43,7 @@ import info.japos.pp.fragments.JadwalPresensiFragment;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.helper.ShowcasePrefsManager;
 import info.japos.pp.helper.ToolbarPresensiActionModeCallback;
-import info.japos.pp.models.Jadwal;
+import info.japos.pp.models.kbm.jadwal.Jadwal;
 import info.japos.pp.models.Peserta;
 import info.japos.pp.models.Presensi;
 import info.japos.pp.models.PresensiInfoLog;
@@ -108,6 +108,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     private Call<Presensi> mCall = null;
     private Call<CommonResponse> mCallUpdPresensi;
     private Call<PresensiInfoLog> mCallPresensiWhoUpdate;
+    private Call<PresensiInfoLog> mCallPresensiLog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -286,9 +287,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         }
 
         Integer idxChecked = this.izinReasons.isEmpty()
-                ? -1 : (peserta.getAlasan() == null
-                ? 0 : izinReasons.indexOf(peserta.getAlasan()) > -1
-                ? izinReasons.indexOf(peserta.getAlasan()) : 0);
+                ? -1 : (peserta.getKeterangan() == null
+                ? 0 : izinReasons.indexOf(peserta.getKeterangan()) > -1
+                ? izinReasons.indexOf(peserta.getKeterangan()) : 0);
 
         Log.d(TAG, "Index Reason: " + idxChecked);
 
@@ -298,7 +299,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                 .itemsCallbackSingleChoice(
                         idxChecked,
                         (dialog, view, which, text) -> {
-                            peserta.setAlasan(text.toString());
+                            peserta.setKeterangan(text.toString());
                             Log.d(TAG, "Alasan izin: " + text);
 
                             updateKetPresensi(presensi, peserta, PresensiKet.I);
@@ -321,7 +322,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
      */
     private void updateKetPresensi(Presensi presensi, Peserta peserta, final PresensiKet ket) {
         // check if same keterangan
-        if (peserta.getKeterangan().equalsIgnoreCase(ket.name()) && !peserta.getKeterangan().equalsIgnoreCase(ket.I.name())) {
+        if (peserta.getStatus().equalsIgnoreCase(ket.name()) && !peserta.getStatus().equalsIgnoreCase(ket.I.name())) {
             CustomToast.show(getApplication(), peserta.getNamaPanggilan() + " telah diset " + ket.getValue() + " sebelumnya!");
             return;
         }
@@ -344,7 +345,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     private void updateKetPresensi(Presensi presensi, List<Peserta> pesertaList, final PresensiKet ket) {
         // update presensi
         for (Peserta peserta : pesertaList) {
-            peserta.setKeterangan(ket.name());
+            peserta.setStatus(ket.name());
         }
 
         presensi.getListPeserta().clear();
@@ -631,7 +632,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
             return;
         }
 
-        Call<PresensiInfoLog> mCallPresensiLog = ServiceGenerator.createService(PresensiService.class)
+        mCallPresensiLog = ServiceGenerator.createService(PresensiService.class)
                 .getPresensiStatistik(presensi.getId());
 
         mCallPresensiLog.enqueue(new Callback<PresensiInfoLog>() {
@@ -669,6 +670,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     @Override
     public void onBackPressed() {
+        if (mCallPresensiWhoUpdate != null) mCallPresensiWhoUpdate.cancel();
+        if (mCallPresensiLog != null) mCallPresensiLog.cancel();
+
         // jika tidak null, berarti pernah digunakan
         if (mCallUpdPresensi != null) {
             Intent i = new Intent();
@@ -712,11 +716,9 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     public void onDestroy() {
         super.onDestroy();
         //cancel retrofit mCall saat activity didestroy
-        if (mCall != null) {
-            mCall.cancel();
-        }
-        if (mCallUpdPresensi != null) {
-            mCallUpdPresensi.cancel();
-        }
+        if (mCall != null) mCall.cancel();
+        if (mCallUpdPresensi != null) mCallUpdPresensi.cancel();
+        if (mCallPresensiWhoUpdate != null) mCallPresensiWhoUpdate.cancel();
+        if (mCallPresensiLog != null) mCallPresensiLog.cancel();
     }
 }

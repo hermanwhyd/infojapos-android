@@ -34,7 +34,7 @@
     <string name="progress_connecting_dialog">Mengambil Data</string>
     <string name="progress_please_wait">Mohon tunggu&#8230;</string>
     <string name="progress_registering_dialog">Registering&#8230;</string>
-    <string name="progress_createnewprecense">Mohon tunggu!\nSetelah selesai layar baru akan tampil dengan list peserta</string>
+    <string name="progress_createnewprecense">Mohon tunggu!\nSetelah selesai akan tampil layar baru dengan list peserta</string>
 
     <!--Message-->
     <string name="network_error">Network error, silakan cek koneksi internet Anda</string>

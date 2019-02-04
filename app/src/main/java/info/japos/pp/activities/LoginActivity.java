@@ -45,7 +45,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private SessionManager session;
 
-
     private Call<LoginResponse> mCallLogin;
 
     @Override
@@ -120,6 +119,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
                 materialDialog.dismiss();
+                Log.e(TAG, t.getMessage(), t);
+
                 View view = findViewById(android.R.id.content);
                 if (view != null) Utils.displayNetworkErrorSnackBar(view, null);
             }

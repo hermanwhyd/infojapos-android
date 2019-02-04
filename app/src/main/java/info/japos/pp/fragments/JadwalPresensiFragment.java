@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -42,19 +43,18 @@ import info.japos.pp.activities.PresensiActivity;
 import info.japos.pp.adapters.JadwalAdapter;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.helper.ShowcasePrefsManager;
-import info.japos.pp.models.Jadwal;
 import info.japos.pp.models.PresensiInfoLog;
-import info.japos.pp.models.listener.ItemSelection;
+import info.japos.pp.models.kbm.common.ItemSectionInterface;
+import info.japos.pp.models.kbm.common.SectionGroupTitle;
+import info.japos.pp.models.kbm.jadwal.Jadwal;
 import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.network.CommonResponse;
-import info.japos.pp.models.view.SelectableJadwal;
 import info.japos.pp.retrofit.JadwalService;
 import info.japos.pp.retrofit.PresensiService;
 import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.view.EqualSpacingItemDecoration;
 import info.japos.pp.view.MessageBoxDialog;
 import info.japos.pp.view.ProgresDialog;
-import info.japos.utils.DateFromNow;
 import info.japos.utils.ErrorUtils;
 import info.japos.utils.GsonUtil;
 import info.japos.utils.RecyclerColumnQty;
@@ -67,26 +67,23 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 public class JadwalPresensiFragment extends Fragment
-        implements View.OnClickListener, ItemSelection, SwipeRefreshLayout.OnRefreshListener,
+        implements View.OnClickListener, JadwalAdapter.OnItemSelectedListener, SwipeRefreshLayout.OnRefreshListener,
         DatePickerFragmentDialog.OnDateSetListener {
 
     private static final String TAG = JadwalPresensiFragment.class.getSimpleName();
     private OnFragmentInteractionListener mListener;
     private static final String STATE_DATE_PICKED = "datePicked";
-    private Call<List<SelectableJadwal>> mCallJadwal = null;
+    private Call<List<Jadwal>> mCallJadwal = null;
     private Call<CommonResponse> mCallPresensi = null;
     private Calendar datePicker = Calendar.getInstance();
-    private GridLayoutManager gridLayoutManager;
     private JadwalAdapter jadwalAdapter;
-    private List<SelectableJadwal> jadwalList = new ArrayList<>();
+    private ArrayList<ItemSectionInterface> mJadwalAndSectionList = new ArrayList<>();
 
-    private DateFromNow dateFromNow;
     private boolean isFirstLoad = Boolean.TRUE;
     private SessionManager sessionManager;
 
     // Showcase config
     private static final String SHOWCASE_ID = "JadwalPresensiShowCase";
-    private ShowcasePrefsManager showcasePrefsManager;
 
     public static final int REQUEST_CODE_PRESENSI = 100;
     public static final String EXTRA_KEY_ANY_CHANGES = "isAnyPresenceChanges";
@@ -100,7 +97,7 @@ public class JadwalPresensiFragment extends Fragment
     public JadwalPresensiFragment() {}
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (mListener != null) {
             mListener.onFragmentInteraction("Jadwal KBM");
         }
@@ -115,16 +112,13 @@ public class JadwalPresensiFragment extends Fragment
         setHasOptionsMenu(Boolean.FALSE);
 
         // shared preferences
-        showcasePrefsManager = new ShowcasePrefsManager(getActivity(), SHOWCASE_ID);
+        ShowcasePrefsManager showcasePrefsManager = new ShowcasePrefsManager(getActivity(), SHOWCASE_ID);
 
         // Session Manager
         sessionManager = new SessionManager(getActivity().getApplication());
 
         // butter knife binding
         ButterKnife.bind(this, view);
-
-        // date from now
-        dateFromNow = new DateFromNow(getActivity());
 
         // bind event onclick to this
         tanggalKMB.setOnClickListener(this);
@@ -136,9 +130,16 @@ public class JadwalPresensiFragment extends Fragment
 
         // RecyclerView
         RecyclerColumnQty recyclerColumnQty = new RecyclerColumnQty(jadwalView.getContext(), R.layout.item_jadwal);
-        gridLayoutManager = new GridLayoutManager(jadwalView.getContext(),recyclerColumnQty.calculateNoOfColumns());
+        final GridLayoutManager gridLayoutManager = new GridLayoutManager(jadwalView.getContext(), recyclerColumnQty.calculateNoOfColumns());
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return JadwalAdapter.SECTION_VIEW == jadwalAdapter.getItemViewType(position) ? recyclerColumnQty.calculateNoOfColumns() : 1;
+            }
+        });
+
         jadwalView.addItemDecoration(new EqualSpacingItemDecoration(12, EqualSpacingItemDecoration.GRID)); // 8px. In practice, you'll want to use getDimensionPixelSize
-        jadwalAdapter = new JadwalAdapter(getContext(), this, jadwalList, Boolean.FALSE);
+        jadwalAdapter = new JadwalAdapter(mJadwalAndSectionList, getContext(), JadwalPresensiFragment.this);
         jadwalView.setLayoutManager(gridLayoutManager);
         jadwalView.setAdapter(jadwalAdapter);
 
@@ -152,9 +153,7 @@ public class JadwalPresensiFragment extends Fragment
         if (!showcasePrefsManager.hasFired()) presentShowcaseSequence();
 
         // post runnable to run fetching data
-        swipeRefreshJadwal.postDelayed(() -> {
-                getJadwalKBM(datePicker);
-        }, 100);
+        swipeRefreshJadwal.postDelayed(() -> getJadwalKBM(datePicker), 100);
     }
 
     private void initBundleHandler(Bundle savedInstanceState) {
@@ -182,7 +181,7 @@ public class JadwalPresensiFragment extends Fragment
         int id = view.getId();
         switch (id) {
             case R.id.btn_submit_pp:
-                SelectableJadwal sJadwal = jadwalAdapter.getSingleSelectedJadwal();
+                Jadwal sJadwal = jadwalAdapter.getSelectedItem();
 
                 if (TextUtils.isEmpty(sJadwal.getStatus()) || sJadwal.getStatus().equalsIgnoreCase("")) {
                     new MaterialDialog.Builder(getActivity())
@@ -209,7 +208,7 @@ public class JadwalPresensiFragment extends Fragment
      * Membuar presensi baru, setelah dibuat, open presensi aktiviti
      * @param sJadwal
      */
-    private void createNewPresensi(SelectableJadwal sJadwal) {
+    private void createNewPresensi(Jadwal sJadwal) {
         MaterialDialog materialDialog = ProgresDialog.showIndeterminateProgressDialog(getActivity(), R.string.progress_connecting_dialog, R.string.progress_createnewprecense, true);
         materialDialog.show();
         mCallPresensi =  ServiceGenerator
@@ -232,11 +231,7 @@ public class JadwalPresensiFragment extends Fragment
                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + GsonUtil.getInstance().toJson(commonResponse));
                     switch (response.code()) {
                         case 401:
-                            MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
-                            break;
                         case 403:
-                            MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
-                            break;
                         case 409:
                             MessageBoxDialog.Show(getActivity(), commonResponse.getMessage());
                             break;
@@ -289,53 +284,53 @@ public class JadwalPresensiFragment extends Fragment
 
         // enqueue
         swipeRefreshJadwal.setRefreshing(Boolean.TRUE);
-        mCallJadwal.enqueue(new Callback<List<SelectableJadwal>>() {
-                         @Override
-                         public void onResponse(Call<List<SelectableJadwal>> call, Response<List<SelectableJadwal>> response) {
-                             swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
-                             if (response.isSuccessful()) {
-                                 List<SelectableJadwal> jadwals = response.body();
-                                 showJadwalKBM(jadwals);
+        mCallJadwal.enqueue(new Callback<List<Jadwal>> () {
+             @Override
+             public void onResponse(Call<List<Jadwal>> call, Response<List<Jadwal>> response) {
+                 swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
+                 if (response.isSuccessful()) {
+                     List<Jadwal> jadwals = response.body();
+                     getJadwalAndSectionList(jadwals);
 
-                                 if (jadwals.isEmpty()) {
-                                     noResultInfo.setText(R.string.kbm_noresult);
-                                     noResultInfo.setVisibility(View.VISIBLE);
-                                 }
+                     if (jadwals.isEmpty()) {
+                         noResultInfo.setText(R.string.kbm_noresult);
+                         noResultInfo.setVisibility(View.VISIBLE);
+                     }
 
-                                 // show notif list updated
-                                 if (!isFirstLoad) {
-                                     Toast.makeText(getActivity(), R.string.list_updated, Toast.LENGTH_SHORT).show();
-                                 } else {
-                                     isFirstLoad = Boolean.FALSE;
-                                 }
+                     // show notif list updated
+                     if (!isFirstLoad) {
+                         Toast.makeText(getActivity(), R.string.list_updated, Toast.LENGTH_SHORT).show();
+                     } else {
+                         isFirstLoad = Boolean.FALSE;
+                     }
 
-                                 Log.i(TAG, "Fetching KBM Finished");
-                                 Log.i(TAG, "Response: " + response.body().size());
-                             } else {
-                                 Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + response.raw());
+                     Log.i(TAG, "Fetching KBM Finished");
+                     Log.i(TAG, "Response: " + response.body().size());
+                 } else {
+                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + response.raw());
 
-                                 showJadwalKBM(new ArrayList<>(0));
-                                 noResultInfo.setText(R.string.result_error);
-                                 noResultInfo.setVisibility(View.VISIBLE);
-                                 switch (response.code()) {
-                                     case 500:
-                                         Toast.makeText(getActivity(), "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
-                                         break;
-                                     default:
-                                         Toast.makeText(getActivity(), "Terjadi kesalahan yang tidak diketahui", Toast.LENGTH_SHORT).show();
-                                         break;
-                                 }
-                             }
-                         }
+                     getJadwalAndSectionList(new ArrayList<>(0));
+                     noResultInfo.setText(R.string.result_error);
+                     noResultInfo.setVisibility(View.VISIBLE);
+                     switch (response.code()) {
+                         case 500:
+                             Toast.makeText(getActivity(), "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
+                             break;
+                         default:
+                             Toast.makeText(getActivity(), "Terjadi kesalahan yang tidak diketahui", Toast.LENGTH_SHORT).show();
+                             break;
+                     }
+                 }
+             }
 
-                         @Override
-                         public void onFailure(Call<List<SelectableJadwal>> call, Throwable t) {
-                             swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
-                             Log.e(TAG, t.getMessage(), t);
-                             noResultInfo.setText(R.string.result_error);
-                             noResultInfo.setVisibility(View.VISIBLE);
-                             showNetworkErrorSnackbar();
-                         }
+             @Override
+             public void onFailure(Call<List<Jadwal>> call, Throwable t) {
+                 swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
+                 Log.e(TAG, t.getMessage(), t);
+                 noResultInfo.setText(R.string.result_error);
+                 noResultInfo.setVisibility(View.VISIBLE);
+                 showNetworkErrorSnackbar();
+             }
         });
     }
 
@@ -343,16 +338,25 @@ public class JadwalPresensiFragment extends Fragment
      * Menampilkan data jadwal ke view
      * @param jadwals
      */
-    private void showJadwalKBM(List<SelectableJadwal> jadwals) {
-        jadwalList.clear();
-        jadwalList.addAll(jadwals);
+    private void getJadwalAndSectionList(List<Jadwal> jadwals) {
+        mJadwalAndSectionList.clear();
+        String lastHeader = "";
+        int size = jadwals.size();
+
+        for (int i = 0; i < size; i++) {
+            Jadwal j = jadwals.get(i);
+            String header = j.getPembinaan();
+
+            if (!TextUtils.equals(lastHeader, header)) {
+                lastHeader = header;
+                mJadwalAndSectionList.add(new SectionGroupTitle(header));
+            }
+            mJadwalAndSectionList.add(j);
+        }
+
         jadwalAdapter.notifyDataSetChanged();
     }
 
-    /**
-     * Listener dari event klik kelas-jadwal di recycler view
-     * @param isAnyItemSelected mengembalikan TRUE jika ada kelas yang di pilih/select
-     */
     @Override
     public void itemSelectionChanged(Boolean isAnyItemSelected) {
         float alpha = isAnyItemSelected ? 1f : 0.5f;
@@ -361,12 +365,12 @@ public class JadwalPresensiFragment extends Fragment
     }
 
     @Override
-    public void menuSelection(MenuItem menuItem, @Nullable Integer reffId, Object ... adds) {
-        if (reffId == null) {
-            SelectableJadwal s = (SelectableJadwal)adds[0];
+    public void onMenuAction(Jadwal sJadwal, MenuItem menuItem) {
+        // in case user trying to delete or get info uncreated presence
+        if (sJadwal.getPresensiId() == null) {
             new MaterialDialog.Builder(getActivity())
                     .title("Presensi Info")
-                    .content(R.string.presensi_infostatistik_empty, s.getKelas())
+                    .content(R.string.presensi_infostatistik_empty, sJadwal.getKelas())
                     .positiveText("Ok")
                     .onPositive((dialog, which) -> dialog.dismiss())
                     .show();
@@ -377,18 +381,16 @@ public class JadwalPresensiFragment extends Fragment
         switch (menuItem.getItemId()) {
             case R.id.mn_delete:
                 Log.d(TAG, "Activity start deleting presence");
-                SelectableJadwal sJadwal = (SelectableJadwal)adds[0];
                 new MaterialDialog.Builder(getActivity())
                         .title("Hapus presensi?")
                         .content(R.string.presensi_delete, sJadwal.getKelas(), Utils.formatDate(datePicker.getTime()), sJadwal.getJamMulai(), sJadwal.getJamSelesai())
                         .positiveText("Hapus")
                         .negativeText("Batal")
-                        .onPositive((dialog, which) -> doDeletePresensi(reffId))
+                        .onPositive((dialog, which) -> doDeletePresensi(sJadwal.getPresensiId()))
                         .show();
                 break;
             case R.id.mn_info :
-                Call<PresensiInfoLog> mCallPresensiLog = ServiceGenerator.createService(PresensiService.class)
-                        .getPresensiStatistik(reffId);
+                Call<PresensiInfoLog> mCallPresensiLog = ServiceGenerator.createService(PresensiService.class).getPresensiStatistik(sJadwal.getPresensiId());
 
                 mCallPresensiLog.enqueue(new Callback<PresensiInfoLog>() {
                     @Override
@@ -405,7 +407,6 @@ public class JadwalPresensiFragment extends Fragment
                                     e.printStackTrace();
                                 }
 
-                                SelectableJadwal sJadwal = (SelectableJadwal)adds[0];
                                 new MaterialDialog.Builder(getActivity())
                                         .title("Presensi Info")
                                         .content(R.string.presensi_infostatistik, sJadwal.getKelas(), TextUtils.isEmpty(presensiInfoLog.getNamaLengkap()) ? presensiInfoLog.getCreatedBy() : presensiInfoLog.getNamaLengkap(),

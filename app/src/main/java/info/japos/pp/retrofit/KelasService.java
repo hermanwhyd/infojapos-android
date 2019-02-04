@@ -3,7 +3,7 @@ package info.japos.pp.retrofit;
 import java.util.List;
 
 import info.japos.pp.models.ClassParticipant;
-import info.japos.pp.models.Kelas;
+import info.japos.pp.models.kbm.kelas.Kelas;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;

@@ -2,7 +2,7 @@
 xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-tools:context="info.japos.pp.fragments.StatistikFragment">
+tools:context="info.japos.pp.fragments.SttKelasFragment">
 
 <TextView
     android:id="@+id/tv_subheader"

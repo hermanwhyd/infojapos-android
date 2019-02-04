@@ -3,7 +3,6 @@ package info.japos.pp.adapters;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,25 +13,29 @@ import android.widget.TextView;
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.List;
 
 import info.japos.pp.R;
-import info.japos.pp.models.Kelas;
+import info.japos.pp.models.kbm.kelas.Kelas;
+import info.japos.pp.models.kbm.common.ItemSectionInterface;
+import info.japos.pp.models.kbm.common.SectionGroupTitle;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.utils.BabushkaText;
-import info.japos.utils.GsonUtil;
 import info.japos.utils.Utils;
 
 /**
  * Created by HWAHYUDI on 19-Dec-17.
  */
 
-public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdapter.StatistikViewHolder> {
-    private Context context;
-    private List<Kelas> dataSet;
+public class StatistikViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private WeakReference<Context> mContextWeakReference;
+    private ArrayList<ItemSectionInterface> mKelasAndSectionList;
     private OnItemSelected onItemSelectedListener;
     private SparseBooleanArray mSelectedItemsIds;
+
+    public static final int SECTION_VIEW = 0;
+    private static final int CONTENT_VIEW = 1;
 
     // TextDrawable
     private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL; // or use DEFAULT
@@ -43,61 +46,82 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
             .endConfig()
             .rect();
 
-    public StatistikViewAdapter(Context context, OnItemSelected onItemSelectedListener, List<Kelas> items) {
-        this.context = context;
+    public StatistikViewAdapter(Context context, OnItemSelected onItemSelectedListener, ArrayList<ItemSectionInterface> items) {
+        this.mContextWeakReference = new WeakReference<>(context);
         this.onItemSelectedListener = onItemSelectedListener;
-        this.dataSet = items;
+        this.mKelasAndSectionList = items;
 
         // init
         mSelectedItemsIds = new SparseBooleanArray();
     }
 
     @Override
-    public StatistikViewAdapter.StatistikViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_kelas, parent,false);
-        return new StatistikViewAdapter.StatistikViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = mContextWeakReference.get();
+        if (viewType == SECTION_VIEW) {
+            return new SectionViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_kelas_group, parent, false));
+        }
+        return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_kelas, parent, false), context);
     }
 
     @Override
-    public void onBindViewHolder(final StatistikViewAdapter.StatistikViewHolder holder, int position) {
-        Kelas kelas = dataSet.get(position);
-        Log.d("SttPsertaAdapter", "Peserta" + position + " -> " + GsonUtil.getInstance().toJson(kelas));
+    public int getItemViewType(int position) {
+        if (mKelasAndSectionList.get(position).isSection()) {
+            return SECTION_VIEW;
+        } else {
+            return CONTENT_VIEW;
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        Context context = mContextWeakReference.get();
+        if (context == null) return;
+
+        if (SECTION_VIEW == getItemViewType(position)) {
+            SectionViewHolder sectionViewHolder = (SectionViewHolder) holder;
+            SectionGroupTitle sectionItem = ((SectionGroupTitle) mKelasAndSectionList.get(position));
+
+            sectionViewHolder.title.setText(sectionItem.title);
+            return;
+        }
+
+        MyViewHolder myViewHolder = (MyViewHolder) holder;
+        Kelas kelas = (Kelas) mKelasAndSectionList.get(position);
         String[] splitNama = kelas.getKelas().split(" ", 2);
         String strInisial = (splitNama.length == 1) ? String.valueOf(kelas.getKelas().charAt(0)) : String.valueOf(splitNama[0].charAt(0)) + String.valueOf(splitNama[1].charAt(0));
         TextDrawable drawable = tBuilder.build(strInisial, mColorGenerator.getColor(kelas.getKelas()));
-        holder.imageView.setImageDrawable(drawable);
-        holder.kelas.setText(kelas.getKelas());
-        holder.pembinaan.setText(kelas.getLvPembinaan());
-        holder.pembina.setText(kelas.getLvPembina() + " " + kelas.getNamaMajelisTaklim());
+        myViewHolder.imageView.setImageDrawable(drawable);
+        myViewHolder.kelas.setText(kelas.getKelas());
+        myViewHolder.pembinaan.setText(kelas.getPembinaan());
+        myViewHolder.pembina.setText(kelas.getLvPembina() + " " + kelas.getNamaMajelisTaklim());
 
         // Babushka Text
-        holder.ttlKBM.reset();
+        myViewHolder.ttlKBM.reset();
         if (kelas.getTotalKBM() == null) {
-            holder.ttlKBM.addPiece(new BabushkaText.Piece.Builder("  N/A  ")
+            myViewHolder.ttlKBM.addPiece(new BabushkaText.Piece.Builder("  N/A  ")
                     .backgroundColor(Color.parseColor("#f4ac41"))
                     .textColor(Color.WHITE)
                     .build());
         } else {
-            holder.ttlKBM.addPiece(new BabushkaText.Piece.Builder("  " + kelas.getTotalKBM() + " KBM  ")
+            myViewHolder.ttlKBM.addPiece(new BabushkaText.Piece.Builder("  " + kelas.getTotalKBM() + " KBM  ")
                     .backgroundColor(Color.parseColor("#53ef8f"))
                     .textColor(Color.WHITE)
                     .build());
         }
-        holder.ttlKBM.display();
+        myViewHolder.ttlKBM.display();
 
         // to remove selection
-        onListItemSelect(holder, kelas);
+        onListItemSelect(myViewHolder, kelas);
 
-        holder.itemView.setOnClickListener(view -> {
-            // for single selection
-
+        myViewHolder.itemView.setOnClickListener(view -> {
             // remove past selection
             for (int i=0; i<mSelectedItemsIds.size(); i++) {
                 if (mSelectedItemsIds.keyAt(i) != kelas.getId()) mSelectedItemsIds.delete(mSelectedItemsIds.keyAt(i));
             }
             notifyDataSetChanged();
 
-            toggleSelectionState(holder, kelas);
+            toggleSelectionState(myViewHolder, kelas);
             if (getSelectedCount() > 0) {
                 onItemSelectedListener.itemSelectionChanged(Boolean.TRUE);
             } else {
@@ -111,7 +135,7 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
      * @param holder
      * @param kelas
      */
-    private void toggleSelectionState(StatistikViewHolder holder, final Kelas kelas) {
+    private void toggleSelectionState(MyViewHolder holder, final Kelas kelas) {
         boolean selection = !mSelectedItemsIds.get(kelas.getId());
         if (selection) {
             mSelectedItemsIds.put(kelas.getId(), Boolean.TRUE);
@@ -126,7 +150,8 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
      * @param holder
      * @param kelas
      */
-    private void onListItemSelect(StatistikViewHolder holder, final Kelas kelas) {
+    private void onListItemSelect(MyViewHolder holder, final Kelas kelas) {
+        Context context = mContextWeakReference.get();
         boolean selection = mSelectedItemsIds.get(kelas.getId());
         if (selection) {
             holder.checkIcon.setVisibility(View.VISIBLE);
@@ -142,19 +167,9 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
         return mSelectedItemsIds.size();
     }
 
-    public List<Kelas> getAllSelectedKelas() {
-        List<Kelas> result = new ArrayList<>();
-        for(int i=0; i<mSelectedItemsIds.size(); i++) {
-            result.add(dataSet.get(dataSet.indexOf(new Kelas(mSelectedItemsIds.keyAt(i)))));
-        }
-
-        return result;
-    }
-
     public Kelas getSelectedKelas() {
-        if (getSelectedCount() == 0)
-            return null;
-        return getAllSelectedKelas().get(0);
+        if (getSelectedCount() == 0) return null;
+        return  (Kelas) mKelasAndSectionList.get(mKelasAndSectionList.indexOf(new Kelas(mSelectedItemsIds.keyAt(0))));
     }
 
     // remove selection
@@ -165,16 +180,16 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
 
     @Override
     public int getItemCount() {
-        return dataSet.size();
+        return mKelasAndSectionList.size();
     }
 
-    class StatistikViewHolder extends RecyclerView.ViewHolder {
+    public class MyViewHolder extends RecyclerView.ViewHolder {
         View view;
         ImageView imageView, checkIcon;
         TextView kelas, pembinaan, pembina;
         BabushkaText ttlKBM;
 
-        public StatistikViewHolder(View itemView) {
+        public MyViewHolder(View itemView, final Context context) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
             checkIcon = itemView.findViewById(R.id.check_icon);
@@ -184,6 +199,15 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<StatistikViewAdap
             ttlKBM = itemView.findViewById(R.id.tv_ttl_kbm);
 
             this.view = itemView;
+        }
+    }
+
+    public class SectionViewHolder extends RecyclerView.ViewHolder {
+        TextView title;
+
+        public SectionViewHolder(View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.tv_group_title);
         }
     }
 }

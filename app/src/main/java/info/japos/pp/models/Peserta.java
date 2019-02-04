@@ -25,12 +25,12 @@ public class Peserta implements Comparable<Peserta>{
     @SerializedName("kelompok")
     @Expose
     private String kelompok;
+    @SerializedName("status")
+    @Expose
+    private String status;
     @SerializedName("keterangan")
     @Expose
     private String keterangan;
-    @SerializedName("alasan")
-    @Expose
-    private String alasan;
     @SerializedName("jenis_kelamin")
     @Expose
     private String gender;
@@ -74,13 +74,13 @@ public class Peserta implements Comparable<Peserta>{
         this.kelompok = kelompok;
     }
 
+    public String getStatus() { return status; }
+
+    public void setStatus(String status) { this.status = status; }
+
     public String getKeterangan() { return keterangan; }
 
     public void setKeterangan(String keterangan) { this.keterangan = keterangan; }
-
-    public String getAlasan() { return alasan; }
-
-    public void setAlasan(String alasan) { this.alasan = alasan; }
 
     public String getGender() {
         if (gender != null) {

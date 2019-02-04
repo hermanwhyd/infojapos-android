@@ -19,6 +19,9 @@ public class Presensi {
     @SerializedName("lv_pembina")
     @Expose
     private String lvPembina;
+    @SerializedName("lv_pembinaan")
+    @Expose
+    private String lvPembinaan;
     @SerializedName("list_siswa")
     @Expose
     private List<Peserta> listPeserta = null;
@@ -49,6 +52,14 @@ public class Presensi {
 
     public List<Peserta> getListPeserta() {
         return listPeserta;
+    }
+
+    public String getLvPembinaan() {
+        return lvPembinaan;
+    }
+
+    public void setLvPembinaan(String lvPembinaan) {
+        this.lvPembinaan = lvPembinaan;
     }
 
     public void setListPeserta(List<Peserta> listPeserta) {

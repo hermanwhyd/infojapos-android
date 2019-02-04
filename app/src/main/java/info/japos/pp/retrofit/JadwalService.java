@@ -3,7 +3,7 @@ package info.japos.pp.retrofit;
 import java.util.List;
 
 import info.japos.pp.models.Presensi;
-import info.japos.pp.models.view.SelectableJadwal;
+import info.japos.pp.models.kbm.jadwal.Jadwal;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -17,5 +17,5 @@ public interface JadwalService {
     Call<Presensi> getStudentPresences(@Path("scdID") int jadwalID, @Path("timestamp") String timestamp);
 
     @GET("class-schedules/{timestamp}")
-    Call<List<SelectableJadwal>> getSchedule(@Path("timestamp") String timestamp);
+    Call<List<Jadwal>> getSchedule(@Path("timestamp") String timestamp);
 }

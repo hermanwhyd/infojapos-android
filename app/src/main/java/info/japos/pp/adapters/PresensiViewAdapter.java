@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -48,6 +47,7 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
             .toUpperCase()
             .endConfig()
             .rect();
+
     public PresensiViewAdapter(List<Peserta> dataSet, Context context, OnItemSelectedListener listener) {
         this.dataSet = dataSet;
         this.context = context;
@@ -81,12 +81,12 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
 
         // reset dulu
         holder.keterangan.reset();
-        holder.keterangan.addPiece(new BabushkaText.Piece.Builder(PresensiKet.valueOf(peserta.getKeterangan()).getValue())
-                .textColor(Color.parseColor(PresensiKet.valueOf(peserta.getKeterangan()).getColor()))
+        holder.keterangan.addPiece(new BabushkaText.Piece.Builder(PresensiKet.valueOf(peserta.getStatus()).getValue())
+                .textColor(Color.parseColor(PresensiKet.valueOf(peserta.getStatus()).getColor()))
                 .style(Typeface.BOLD)
                 .build());
-        if (peserta.getKeterangan().equalsIgnoreCase(PresensiKet.I.name())) {
-            holder.keterangan.addPiece(new BabushkaText.Piece.Builder("\n" + peserta.getAlasan())
+        if (peserta.getStatus().equalsIgnoreCase(PresensiKet.I.name())) {
+            holder.keterangan.addPiece(new BabushkaText.Piece.Builder("\n" + peserta.getKeterangan())
                     .textSizeRelative(0.7f).textColor(Utils.getColor(context, R.color.text_sub_gray))
                     .build());
         }

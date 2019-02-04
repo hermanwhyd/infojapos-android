@@ -14,6 +14,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,8 +34,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
 import info.japos.pp.activities.StatistikActivity;
+import info.japos.pp.adapters.JadwalAdapter;
 import info.japos.pp.adapters.StatistikViewAdapter;
-import info.japos.pp.models.Kelas;
+import info.japos.pp.models.kbm.common.ItemSectionInterface;
+import info.japos.pp.models.kbm.common.SectionGroupTitle;
+import info.japos.pp.models.kbm.kelas.Kelas;
 import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.pp.retrofit.KelasService;
@@ -46,12 +50,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class StatistikFragment extends Fragment implements View.OnClickListener, OnItemSelected, SwipeRefreshLayout.OnRefreshListener, DatePickerDialog.OnDateSetListener {
+public class SttKelasFragment extends Fragment implements View.OnClickListener, OnItemSelected, SwipeRefreshLayout.OnRefreshListener, DatePickerDialog.OnDateSetListener {
 
-    private static String TAG = StatistikFragment.class.getSimpleName();
+    private static String TAG = SttKelasFragment.class.getSimpleName();
 
     private OnFragmentInteractionListener mListener;
-    private List<Kelas> kelasList = new ArrayList<>();
+    private ArrayList<ItemSectionInterface> mKelasAndSectionList = new ArrayList<>();
     private StatistikViewAdapter sttViewAdapter;
     private Call<List<Kelas>> mCallKelas;
     private boolean isFirstLoad = Boolean.TRUE;
@@ -65,7 +69,7 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
     @BindView(R.id.btn_submit_pp) Button btnNext;
     @BindView(R.id.swipe_refresh_kelas) SwipeRefreshLayout swipeRefreshKelas;
 
-    public StatistikFragment() {}
+    public SttKelasFragment() {}
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -98,10 +102,17 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
 
         // RecyclerView
         RecyclerColumnQty recyclerColumnQty = new RecyclerColumnQty(kelasView.getContext(), R.layout.item_kelas);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(kelasView.getContext(),recyclerColumnQty.calculateNoOfColumns());
+        final GridLayoutManager gridLayoutManager = new GridLayoutManager(kelasView.getContext(),recyclerColumnQty.calculateNoOfColumns());
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return StatistikViewAdapter.SECTION_VIEW == sttViewAdapter.getItemViewType(position) ? recyclerColumnQty.calculateNoOfColumns() : 1;
+            }
+        });
+
         kelasView.addItemDecoration(new EqualSpacingItemDecoration(12, EqualSpacingItemDecoration.GRID)); // 8px. In practice, you'll want to use getDimensionPixelSize
         kelasView.setLayoutManager(gridLayoutManager);
-        sttViewAdapter = new StatistikViewAdapter(getContext(), this, kelasList);
+        sttViewAdapter = new StatistikViewAdapter(getContext(), this, mKelasAndSectionList);
         kelasView.setAdapter(sttViewAdapter);
 
         initBundleHandler(savedInstanceState);
@@ -170,9 +181,9 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
                 swipeRefreshKelas.setRefreshing(Boolean.FALSE);
                 if (response.isSuccessful()) {
                     List<Kelas> newKelasList = response.body();
-                    showKelasList(newKelasList);
+                    getKelasAndSectionList(newKelasList);
 
-                    if (kelasList.isEmpty()) {
+                    if (mKelasAndSectionList.isEmpty()) {
                         noResultInfo.setText(R.string.activeclass_noresult);
                         noResultInfo.setVisibility(View.VISIBLE);
                     }
@@ -188,7 +199,7 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
                 } else {
                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + response.raw());
 
-                    showKelasList(new ArrayList<>(0));
+                    getKelasAndSectionList(new ArrayList<>(0));
                     noResultInfo.setText(R.string.result_error);
                     noResultInfo.setVisibility(View.VISIBLE);
                     switch (response.code()) {
@@ -215,9 +226,21 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
      *
      * @param newKelasList a new list of object Kelas
      */
-    private void showKelasList(List<Kelas> newKelasList) {
-        kelasList.clear();
-        kelasList.addAll(newKelasList);
+    private void getKelasAndSectionList(List<Kelas> newKelasList) {
+        mKelasAndSectionList.clear();
+        String lastHeader = "";
+        int size = newKelasList.size();
+
+        for (int i = 0; i < size; i++) {
+            Kelas k = newKelasList.get(i);
+            String header = k.getPembinaan();
+            if (!TextUtils.equals(lastHeader, header)) {
+                lastHeader = header;
+                mKelasAndSectionList.add(new SectionGroupTitle(header));
+            }
+
+            mKelasAndSectionList.add(k);
+        }
         sttViewAdapter.removeSelection();
     }
 
@@ -226,7 +249,7 @@ public class StatistikFragment extends Fragment implements View.OnClickListener,
      */
     private void setDateRangePicker() {
         DatePickerDialog dpd = DatePickerDialog.newInstance(
-                StatistikFragment.this,
+                SttKelasFragment.this,
                 datePicker.get(Calendar.YEAR),
                 datePicker.get(Calendar.MONTH),
                 datePicker.get(Calendar.DAY_OF_MONTH),
