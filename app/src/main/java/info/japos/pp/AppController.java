@@ -40,8 +40,6 @@ public class AppController extends Application {
         super.onCreate();
         controller = this;
 
-        Log.i(TAG, "Application Controller is Called");
-
         // shared preferences
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -57,7 +55,7 @@ public class AppController extends Application {
         long lastFetch = sharedpreferences.getLong(AppConstant.LAST_GET_ENUM_IZIN, 0L);
         long currTimeMillis = calendar.getTimeInMillis();
         long diff = currTimeMillis - lastFetch;
-        Log.d(TAG, "Last fetch reasons: " + (diff/3600000) + "H");
+
         if (diff >= 7200000) { // 2h
             fetchEnumsIzin();
         };
@@ -70,7 +68,6 @@ public class AppController extends Application {
             public void onResponse(Call<List<Enums>> call, Response<List<Enums>> response) {
                 if (response.isSuccessful() && response.code() == 200) {
                     List<Enums> enums = response.body();
-                    Log.d(TAG, "Enums 'izin_alasan' loaded: " + enums.size());
                     if (!enums.isEmpty()) {
                         EnumsRepository.with(AppController.this).addEnums(enums);
                     }

@@ -22,6 +22,7 @@ tools:context="info.japos.pp.fragments.SttKelasFragment">
     android:layout_centerHorizontal="true"
     android:drawableStart="@drawable/ic_action_date"
     android:ems="10"
+    android:drawablePadding="10dp"
     android:focusable="false"
     android:inputType="date"
     android:textColor="@color/text_color" />

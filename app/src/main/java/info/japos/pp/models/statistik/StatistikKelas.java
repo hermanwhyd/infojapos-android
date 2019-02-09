@@ -19,7 +19,7 @@ public class StatistikKelas {
     private String namaKelas;
     @SerializedName("lv_pembinaan")
     @Expose
-    private String levelPembinaan;
+    private String pembinaan;
     @SerializedName("statistik_list")
     @Expose
     private List<StatistikGeneral> statistikGenerals = new ArrayList<>(0);
@@ -40,12 +40,12 @@ public class StatistikKelas {
         this.namaKelas = namaKelas;
     }
 
-    public String getLevelPembinaan() {
-        return levelPembinaan;
+    public String getPembinaan() {
+        return pembinaan;
     }
 
-    public void setLevelPembinaan(String levelPembinaan) {
-        this.levelPembinaan = levelPembinaan;
+    public void setPembinaan(String pembinaan) {
+        this.pembinaan = pembinaan;
     }
 
     public List<StatistikGeneral> getStatistikGenerals() {
