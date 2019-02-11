@@ -177,6 +177,12 @@ public class JadwalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return mSelectedItemsIds;
     }
 
+    // remove selection
+    public void removeSelection() {
+        mSelectedItemsIds = new SparseBooleanArray();
+        notifyDataSetChanged();
+    }
+
     // Return all ids
     public Jadwal getSelectedItem() {
         Jadwal result;

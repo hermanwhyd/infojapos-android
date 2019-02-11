@@ -58,6 +58,7 @@ dependencies {
     implementation "com.android.support:design:${versions.supportLib}"
     implementation "com.android.support:support-vector-drawable:${versions.supportLib}"
     implementation "com.android.support:support-v4:${versions.supportLib}"
+    implementation "com.android.support:support-annotations:${versions.supportLib}"
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
     // view Injection Lib - Butterknife
@@ -65,13 +66,15 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     // materialdrawer
-//    implementation("com.mikepenz:materialdrawer:6.0.9@aar") {
-//        transitive = true
-//    }
-//    implementation "com.android.support:support-annotations:${versions.supportLib}"
+    implementation("com.mikepenz:materialdrawer:6.0.9@aar") {
+        transitive = true
+    }
+    implementation 'com.mikepenz:google-material-typeface:3.0.1.3.original@aar'
+    implementation 'com.mikepenz:fontawesome-typeface:5.3.1.1@aar'
+    implementation "com.mikepenz:itemanimators:1.0.2"
 
     // picasso
-    //    compile 'com.squareup.picasso:picasso:2.5.2'
+//    implementation 'com.squareup.picasso:picasso:2.5.2'
 
     // Realm
     implementation 'io.realm:realm-android:0.87.5'

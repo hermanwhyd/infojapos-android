@@ -29,7 +29,6 @@ public class AppController extends Application {
     private SharedPreferences sharedpreferences;
     private static AppController controller;
     private Calendar calendar = Calendar.getInstance();
-    private Call<List<Enums>> callEnums;
 
     public static synchronized AppController getInstance() {
         return controller;
@@ -56,25 +55,23 @@ public class AppController extends Application {
         long currTimeMillis = calendar.getTimeInMillis();
         long diff = currTimeMillis - lastFetch;
 
-        if (diff >= 7200000) { // 2h
-            fetchEnumsIzin();
-        };
+        if (diff >= 7200000) fetchEnumsIzin(); // 2h
     }
 
     private void fetchEnumsIzin() {
-        callEnums = ServiceGenerator.createService(EnumsService.class).getPilihanByGrup(AppConstant.ENUM_IZIN_ALASAN);
+        Call<List<Enums>> callEnums = ServiceGenerator.createService(EnumsService.class).getPilihanByGrup(AppConstant.ENUM_IZIN_ALASAN);
         callEnums.enqueue(new Callback<List<Enums>>() {
             @Override
             public void onResponse(Call<List<Enums>> call, Response<List<Enums>> response) {
                 if (response.isSuccessful() && response.code() == 200) {
                     List<Enums> enums = response.body();
-                    if (!enums.isEmpty()) {
+                    if (enums != null && !enums.isEmpty()) {
                         EnumsRepository.with(AppController.this).addEnums(enums);
                     }
 
                     SharedPreferences.Editor editor = sharedpreferences.edit();
                     editor.putLong(AppConstant.LAST_GET_ENUM_IZIN, calendar.getTimeInMillis());
-                    editor.commit();
+                    editor.apply();
                 } else {
                     CustomToast.show(getBaseContext(), "Gagal mendapatkan list 'Alasan Izin'");
                 }
@@ -82,6 +79,7 @@ public class AppController extends Application {
 
             @Override
             public void onFailure(Call<List<Enums>> call, Throwable t) {
+                Log.e(TAG, t.getMessage(), t);
                 t.printStackTrace();
             }
         });

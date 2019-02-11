@@ -18,11 +18,11 @@
             app:contentInsetStartWithNavigation="0dp"/>
 
         <TextView
-            android:id="@+id/domain_label"
+            android:id="@+id/domain_info"
             android:background="@color/colorPrimaryDarker"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Villa Japos"
+            android:text="Not Selected"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="12sp"/>

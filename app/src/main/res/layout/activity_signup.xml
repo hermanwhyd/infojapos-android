@@ -30,7 +30,7 @@ android:fitsSystemWindows="true">
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textCapWords"
-            android:hint="Name" />
+            android:hint="Nama Lengkap" />
     </android.support.design.widget.TextInputLayout>
 
     <!--  Name Label -->
@@ -88,7 +88,7 @@ android:fitsSystemWindows="true">
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        android:text="punya akun? login"
+        android:text="sudah ada akun? login"
         android:gravity="center"
         android:textSize="16sp"/>
 

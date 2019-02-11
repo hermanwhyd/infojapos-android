@@ -122,7 +122,7 @@ public class SttPesertaViewAdapter extends RecyclerView.Adapter<SttPesertaViewAd
     public void removeSelection() {
         mSelectedItemsIds = new SparseBooleanArray();
         notifyDataSetChanged();
-    };
+    }
 
     // Get total selected count
     public int getSelectedCount() {

@@ -295,6 +295,8 @@ public class JadwalPresensiFragment extends Fragment
                      if (jadwals.isEmpty()) {
                          noResultInfo.setText(R.string.kbm_noresult);
                          noResultInfo.setVisibility(View.VISIBLE);
+                     } else {
+                         noResultInfo.setVisibility(View.GONE);
                      }
 
                      // show notif list updated
@@ -305,7 +307,6 @@ public class JadwalPresensiFragment extends Fragment
                      }
 
                      Log.i(TAG, "Fetching KBM Finished");
-                     Log.i(TAG, "Response: " + response.body().size());
                  } else {
                      Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + response.raw());
 
@@ -340,6 +341,7 @@ public class JadwalPresensiFragment extends Fragment
      */
     private void getJadwalAndSectionList(List<Jadwal> jadwals) {
         mJadwalAndSectionList.clear();
+        jadwalAdapter.removeSelection();
         String lastHeader = "";
         int size = jadwals.size();
 
@@ -560,8 +562,6 @@ public class JadwalPresensiFragment extends Fragment
             public void onFailure(Call<CommonResponse> call, Throwable t) {
                 swipeRefreshJadwal.setRefreshing(Boolean.FALSE);
                 Log.e(TAG, t.getMessage(), t);
-                noResultInfo.setText(R.string.result_error);
-                noResultInfo.setVisibility(View.VISIBLE);
                 showNetworkErrorSnackbar();
             }
         });

@@ -46,3 +46,6 @@
 
 #  MPAndroidChart
 -keep class com.github.mikephil.charting.** { *; }
+
+# Picasso
+#-dontwarn com.squareup.okhttp.**

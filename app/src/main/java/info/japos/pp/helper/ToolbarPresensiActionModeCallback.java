@@ -43,7 +43,6 @@ public class ToolbarPresensiActionModeCallback implements ActionMode.Callback {
                 ((PresensiActivity)activity).markAllSelected(PresensiKet.H);
                 break;
             case R.id.mn_sa_alpa:
-                AppCompatActivity presensiAct = new PresensiActivity();
                 ((PresensiActivity)activity).markAllSelected(PresensiKet.A);
                 break;
         }

@@ -150,7 +150,6 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         for (Enums anEnum : enums) {
             izinReasons.add(anEnum.getValue());
         }
-        Log.d(TAG, "Enums from db: " + GsonUtil.getInstance().toJson(izinReasons));
 
         // Create Vibrator instance for current context
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
