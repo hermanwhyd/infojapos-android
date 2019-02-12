@@ -1,4 +1,4 @@
-package info.japos.pp.models;
+package info.japos.pp.models.realm;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -30,15 +30,20 @@ public class User extends RealmObject {
     @SerializedName("password")
     @Expose
     private String password;
-    @SerializedName("remember_token")
-    @Expose
-    private String rememberToken;
-    @SerializedName("updated_at")
-    @Expose
-    private String updatedAt;
-    @SerializedName("deleted_at")
-    @Expose
-    private String deletedAt;
+
+    private UserDomain activeUserDomain;
+
+    public User() {
+    }
+
+    public User(Integer id, String username, String email, String nama, String password, UserDomain activeUserDomain) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.nama = nama;
+        this.password = password;
+        this.activeUserDomain = activeUserDomain;
+    }
 
     public Integer getId() {
         return id;
@@ -72,35 +77,19 @@ public class User extends RealmObject {
         this.nama = nama;
     }
 
-    public String getRememberToken() {
-        return rememberToken;
-    }
-
-    public void setRememberToken(String rememberToken) {
-        this.rememberToken = rememberToken;
-    }
-
-    public String getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(String updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(String deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-
     public String getPassword() {
         return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public UserDomain getActiveUserDomain() {
+        return activeUserDomain;
+    }
+
+    public void setActiveUserDomain(UserDomain activeUserDomain) {
+        this.activeUserDomain = activeUserDomain;
     }
 }

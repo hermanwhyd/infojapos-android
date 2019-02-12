@@ -15,7 +15,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
-import info.japos.pp.models.User;
+import info.japos.pp.models.realm.User;
 import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.retrofit.LoginService;
 import info.japos.pp.retrofit.ServiceGenerator;

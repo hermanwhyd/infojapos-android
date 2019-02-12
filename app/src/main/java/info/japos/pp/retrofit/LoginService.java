@@ -1,6 +1,6 @@
 package info.japos.pp.retrofit;
 
-import info.japos.pp.models.User;
+import info.japos.pp.models.realm.User;
 import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.models.network.LoginResponse;
 import retrofit2.Call;

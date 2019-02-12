@@ -12,7 +12,7 @@ android {
     compileSdkVersion setup.compileSdk
     buildToolsVersion setup.buildTools
     defaultConfig {
-        applicationId "info.japos.pp.absensi"
+        applicationId "info.japos.pp.kbm"
         minSdkVersion setup.minSdk
         targetSdkVersion setup.targetSdk
         versionCode release.versionCode
@@ -36,7 +36,9 @@ android {
             shrinkResources true
         }
         debug {
-            minifyEnabled true
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-DEBUG"
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.InfoJapos
         }

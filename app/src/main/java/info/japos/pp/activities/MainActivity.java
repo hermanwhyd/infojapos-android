@@ -10,7 +10,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -30,7 +29,9 @@ import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -43,9 +44,12 @@ import info.japos.pp.fragments.SttPesertaFragment;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.models.ApplicationInfo.ApplicationInfo;
 import info.japos.pp.models.ApplicationInfo.VersionInfo;
-import info.japos.pp.models.User;
 import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.network.CommonResponse;
+import info.japos.pp.models.realm.User;
+import info.japos.pp.models.realm.UserDomain;
+import info.japos.pp.models.realm.UserDomainRepository;
+import info.japos.pp.models.realm.UserRepository;
 import info.japos.pp.retrofit.LoginService;
 import info.japos.pp.retrofit.ServiceGenerator;
 import info.japos.pp.retrofit.VersionService;
@@ -122,46 +126,44 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             checkAppUpdate();
         }
 
+        handleNavDrawable(savedInstanceState, userLogged);
+    }
+
+    private void handleNavDrawable(Bundle savedInstanceState, User userLogged) {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        List<IProfile> profiles = new ArrayList<>();
 
-        TextDrawable drawable0 = tBuilder.build("JPS", mColorGenerator.getColor("Japos"));
-        TextDrawable drawable1 = tBuilder.build("VJ", mColorGenerator.getColor("Villa Japos"));
-        TextDrawable drawable2 = tBuilder.build("PJI", mColorGenerator.getColor("Pondok Jati Indah"));
-        TextDrawable drawable3 = tBuilder.build("TMI", mColorGenerator.getColor("Taman Mangu Indah"));
-        TextDrawable drawable4 = tBuilder.build("PDA", mColorGenerator.getColor("Pondok Aren"));
-
-        final IProfile profile0 = new ProfileDrawerItem().withName("Desa").withEmail("Japos").withIcon(drawable0).withIdentifier(24302);
-        final IProfile profile1 = new ProfileDrawerItem().withName("Kelompok").withEmail("Villa Japos").withIcon(drawable1).withIdentifier(24303);
-        final IProfile profile2 = new ProfileDrawerItem().withName("Kelompok").withEmail("Pondok Jati Indah").withIcon(drawable2).withIdentifier(24304);
-        final IProfile profile3 = new ProfileDrawerItem().withName("Kelompok").withEmail("Taman Mangu Indah").withIcon(drawable3).withIdentifier(24305);
-        final IProfile profile4 = new ProfileDrawerItem().withName("Kelompok").withEmail("Pondok Aren").withIcon(drawable4).withIdentifier(24306);
+        // get from db
+        List<UserDomain> userDomainList = UserDomainRepository.with(this).getAllUserDomain();
+        for (UserDomain dom : userDomainList) {
+            profiles.add(new ProfileDrawerItem()
+                    .withName(dom.getPembina())
+                    .withEmail(dom.getNama())
+                    .withIcon(tBuilder.build(dom.getInisial(), mColorGenerator.getColor(dom.getNama())))
+                    .withIdentifier(dom.getId())
+            );
+        }
 
         headerResult = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withTranslucentStatusBar(true)
                 .withHeaderBackground(R.drawable.header_ppg)
-                .addProfiles(
-                        profile0,
-                        profile1,
-                        profile2,
-                        profile3,
-                        profile4
-                        //don't ask but google uses 14dp for the add account icon in gmail but 20dp for the normal icons (like manage account)
-                        //new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_add).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(100001)
-                )
-                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
-                    @Override
-                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-                        // Toast notif domain changed
-                        if (profile instanceof IDrawerItem) {
-                            CustomToast.show(getBaseContext(), "" + profile.getEmail().getText());
-                            tvDomainInfo.setText(profile.getName() + " " + profile.getEmail().getText());
-                        }
+                .withProfiles(profiles)
+                .withOnAccountHeaderListener((view, profile, current) -> {
+                    // Toast notif domain changed
+                    if (profile instanceof IDrawerItem && !current) {
+                        CustomToast.show(getBaseContext(), String.format("%s", profile.getEmail().getText()));
+                        tvDomainInfo.setText(String.format("%s %s", profile.getName(), profile.getEmail().getText()));
 
-                        //false if you have not consumed the event and it should close the drawer
-                        return false;
+                        // save selected profile into realm db
+                        UserDomain profileDomain = UserDomainRepository.getInstance().getUserDomain((int)profile.getIdentifier());
+                        User userLoggedUpd = new User(userLogged.getId(), userLogged.getUsername(), userLogged.getEmail(), userLogged.getNama(), userLogged.getPassword(), profileDomain);
+                        (UserRepository.with(this)).AddUser(userLoggedUpd);
                     }
+
+                    //false if you have not consumed the event and it should close the drawer
+                    return false;
                 })
                 .withSavedInstance(savedInstanceState)
                 .build();
@@ -174,18 +176,18 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 .withItemAnimator(new AlphaCrossFadeAnimator())
                 .withAccountHeader(headerResult) //set the AccountHeader we created earlier for the header
                 .addDrawerItems(
-                    new PrimaryDrawerItem().withName("Presensi").withIcon(FontAwesome.Icon.faw_leanpub).withIdentifier(11),
-                    new ExpandableBadgeDrawerItem().withName("Statistik Kehadiran").withIcon(FontAwesome.Icon.faw_chart_pie).withIdentifier(20).withSelectable(false).withSubItems(
-                        new SecondaryDrawerItem().withName("Kelas").withLevel(2).withIcon(FontAwesome.Icon.faw_chart_bar1).withIdentifier(21),
-                        new SecondaryDrawerItem().withName("Peserta").withLevel(2).withIcon(FontAwesome.Icon.faw_user1).withIdentifier(22)
-                    ),
-                    new DividerDrawerItem(),
-                    new SecondaryDrawerItem().withName("Logout").withIcon(FontAwesome.Icon.faw_sign_out_alt).withIdentifier(31).withSelectable(false),
-                    new SecondaryDrawerItem().withName("Contact Admin").withIcon(FontAwesome.Icon.faw_whatsapp).withIdentifier(32).withSelectable(false),
-                    new SecondaryDrawerItem().withName("About").withIcon(FontAwesome.Icon.faw_question_circle).withIdentifier(33).withSelectable(false)
+                        new PrimaryDrawerItem().withName("Presensi").withIcon(FontAwesome.Icon.faw_leanpub).withIdentifier(11),
+                        new ExpandableBadgeDrawerItem().withName("Statistik Kehadiran").withIcon(FontAwesome.Icon.faw_chart_pie).withIdentifier(20).withSelectable(false).withSubItems(
+                            new SecondaryDrawerItem().withName("Kelas").withLevel(2).withIcon(FontAwesome.Icon.faw_chart_bar1).withIdentifier(21),
+                            new SecondaryDrawerItem().withName("Peserta").withLevel(2).withIcon(FontAwesome.Icon.faw_user1).withIdentifier(22)
+                        ),
+                        new DividerDrawerItem(),
+                        new SecondaryDrawerItem().withName("Logout").withIcon(FontAwesome.Icon.faw_sign_out_alt).withIdentifier(31).withSelectable(false),
+                        new SecondaryDrawerItem().withName("Contact Admin").withIcon(FontAwesome.Icon.faw_whatsapp).withIdentifier(32).withSelectable(false),
+                        new SecondaryDrawerItem().withName("About").withIcon(FontAwesome.Icon.faw_question_circle).withIdentifier(33).withSelectable(false)
                 )
                 .addStickyDrawerItems(
-                    new SecondaryDrawerItem().withName(userLogged.getNama()).withIcon(FontAwesome.Icon.faw_user_circle1).withIdentifier(91).withSelectable(false)
+                        new SecondaryDrawerItem().withName(userLogged.getNama()).withIcon(FontAwesome.Icon.faw_user_circle1).withIdentifier(91).withSelectable(false)
                 )// add the items we want to use with our Drawer
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     if (drawerItem != null) {
@@ -231,8 +233,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             result.setSelection(11, true);
 
             //set the active profile
-            tvDomainInfo.setText(profile0.getName() + " " + profile0.getEmail().getText());
-            headerResult.setActiveProfile(profile0);
+            tvDomainInfo.setText(String.format("%s %s", userLogged.getActiveUserDomain().getPembina(), userLogged.getActiveUserDomain().getNama()));
+            headerResult.setActiveProfile(userLogged.getActiveUserDomain().getId());
         }
     }
 
@@ -247,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             public void onResponse(Call<VersionInfo> call, Response<VersionInfo> response) {
                 if (response.isSuccessful() && response.code() == 200) {
                     VersionInfo versionInfo = response.body();
-                    Log.d(TAG, "Version loaded, response: " + versionInfo.toString());
+                    Log.d(TAG, "Version loaded, response: " + versionInfo);
 
                     // save into preff
                     SharedPreferences.Editor editor = sharedpreferences.edit();

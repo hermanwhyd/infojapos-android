@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.support.v4.app.Fragment;
 
-import info.japos.pp.models.User;
 import io.realm.Realm;
 
 /**

@@ -41,7 +41,7 @@ public class Jadwal implements ItemSectionInterface {
     private Integer presensiId;
     @SerializedName("label_jadwal")
     @Expose
-    private Integer labelJadwal;
+    private String labelJadwal;
     @SerializedName("ttl_peserta")
     @Expose
     private Integer totalPeserta;
@@ -62,7 +62,7 @@ public class Jadwal implements ItemSectionInterface {
         this.id = id;
     }
 
-    public Jadwal(Integer id, String kelas, String lokasi, String pembinaan, String pembina, String jamMulai, String jamSelesai, String status, Integer presensiId, Integer labelJadwal, Integer totalPeserta, Integer hadir, Integer alpa, Integer izin) {
+    public Jadwal(Integer id, String kelas, String lokasi, String pembinaan, String pembina, String jamMulai, String jamSelesai, String status, Integer presensiId, String labelJadwal, Integer totalPeserta, Integer hadir, Integer alpa, Integer izin) {
         this.id = id;
         this.kelas = kelas;
         this.lokasi = lokasi;
@@ -156,11 +156,11 @@ public class Jadwal implements ItemSectionInterface {
         this.presensiId = presensiId;
     }
 
-    public Integer getLabelJadwal() {
+    public String getLabelJadwal() {
         return labelJadwal;
     }
 
-    public void setLabelJadwal(Integer labelJadwal) {
+    public void setLabelJadwal(String labelJadwal) {
         this.labelJadwal = labelJadwal;
     }
 

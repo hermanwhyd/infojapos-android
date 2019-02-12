@@ -17,9 +17,11 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.japos.pp.R;
 import info.japos.pp.helper.SessionManager;
-import info.japos.pp.models.User;
+import info.japos.pp.models.realm.User;
 import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.models.network.LoginResponse;
+import info.japos.pp.models.realm.UserDomain;
+import info.japos.pp.models.realm.UserDomainRepository;
 import info.japos.pp.models.realm.UserRepository;
 import info.japos.pp.retrofit.LoginService;
 import info.japos.pp.retrofit.ServiceGenerator;
@@ -132,9 +134,18 @@ public class LoginActivity extends AppCompatActivity {
 
         User userLogged = response.getUser();
         String apiToken = response.getApiToken();
+        UserDomain userDomain = response.getUserDomain();
+
+        // initial user domain
+        userLogged.setActiveUserDomain(userDomain);
 
         // save into realm
-        ((UserRepository)UserRepository.with(this)).AddUser(userLogged);
+        (UserRepository.with(this)).AddUser(userLogged);
+        
+        // save into realm
+        (UserDomainRepository.with(this)).AddUserDomain(userDomain);
+        recvAddDomainRealm(userDomain);
+
 
         // save to session
         session.setLogin(Boolean.TRUE);
@@ -145,6 +156,14 @@ public class LoginActivity extends AppCompatActivity {
         gotoMainAcivity();
 
         this.finish();
+    }
+    
+    private void recvAddDomainRealm(UserDomain userDomain) {
+        for (UserDomain child : userDomain.getChilds()) {
+            child.setParentId(userDomain.getId());
+            (UserDomainRepository.with(this)).AddUserDomain(child);
+            recvAddDomainRealm(child);
+        }
     }
 
     public void onLoginFailed(CommonResponse cr) {

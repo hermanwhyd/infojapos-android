@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
 
-import info.japos.pp.models.User;
+import info.japos.pp.models.realm.User;
 import info.japos.pp.models.realm.UserRepository;
 
 public class SessionManager {
@@ -56,8 +56,6 @@ public class SessionManager {
 
         // commit changes
         editor.commit();
-
-        Log.d(TAG, "User login session modified!");
     }
 
     public boolean isLoggedIn() {
