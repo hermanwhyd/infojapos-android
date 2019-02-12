@@ -20,6 +20,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -30,6 +33,8 @@ import butterknife.ButterKnife;
 import fr.ganfra.materialspinner.MaterialSpinner;
 import info.japos.pp.R;
 import info.japos.pp.adapters.SttPesertaViewAdapter;
+import info.japos.pp.bus.BusProvider;
+import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.models.ClassParticipant;
 import info.japos.pp.models.Custom.StringWithTag;
 import info.japos.pp.models.kbm.kelas.Kelas;
@@ -57,6 +62,10 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
     private Call<List<ClassParticipant>> mCallPeserta;
     private Boolean isFirstLoad = Boolean.TRUE;
 
+    private int userDomainId;
+
+    private Bus mBus = BusProvider.getInstance();
+
     private OnFragmentInteractionListener mListener;
 
     private List<ClassParticipant> pesertaList = new ArrayList<>(0);
@@ -82,6 +91,15 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // get bundle params
+        Bundle args = getArguments();
+        userDomainId = args.getInt("UserDomainId");
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -89,6 +107,9 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
 
         // butter knife binding
         ButterKnife.bind(this, view);
+
+        // bus register
+        mBus.register(this);
 
         // init spinner
         initSpinnerKelas();
@@ -206,7 +227,7 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
 
         mCallKelas = ServiceGenerator
                 .createService(KelasService.class)
-                .getClassActive(Utils.formatApiDate(cal.getTime()));
+                .getClassActive(Utils.formatApiDate(cal.getTime()), userDomainId);
 
         // enqueue
         mCallKelas.enqueue(new Callback<List<Kelas>>() {
@@ -267,6 +288,13 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
         populateParticipants(kelasId);
     }
 
+    @Subscribe
+    public void onEventUserDomainChange(UserDomainChangedEvent event) {
+        Log.d(TAG, "Receive: UserDomain changed event");
+        userDomainId = event.getIdentifier();
+        getKelasList();
+    }
+
     @Override
     public void onClick(View view) {
         int id = view.getId();
@@ -298,6 +326,7 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        mBus.unregister(this);
     }
 
     @Override

@@ -28,6 +28,7 @@ import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
+import com.squareup.otto.Bus;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -36,6 +37,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
+import info.japos.pp.bus.BusProvider;
+import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.constants.AppConstant;
 import info.japos.pp.fragments.AboutDialog;
 import info.japos.pp.fragments.JadwalPresensiFragment;
@@ -75,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     @BindView (R.id.domain_info)
     TextView tvDomainInfo;
+
+    // Bus
+    private Bus mBus = BusProvider.getInstance();
 
     // TextDrawable
     private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL; // or use DEFAULT
@@ -160,6 +166,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                         UserDomain profileDomain = UserDomainRepository.getInstance().getUserDomain((int)profile.getIdentifier());
                         User userLoggedUpd = new User(userLogged.getId(), userLogged.getUsername(), userLogged.getEmail(), userLogged.getNama(), userLogged.getPassword(), profileDomain);
                         (UserRepository.with(this)).AddUser(userLoggedUpd);
+
+                        // send event
+                        mBus.post(new UserDomainChangedEvent(profileDomain.getId()));
                     }
 
                     //false if you have not consumed the event and it should close the drawer
@@ -214,6 +223,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
                         // Fragment changing code
                         if(fragment != null) {
+                            Bundle arguments = new Bundle();
+                            arguments.putInt("UserDomainId", userLogged.getActiveUserDomain().getId());
+                            fragment.setArguments(arguments);
+
                             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                             ft.replace(R.id.content_frame, fragment);
                             ft.commit();

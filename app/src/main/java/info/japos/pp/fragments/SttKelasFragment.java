@@ -25,6 +25,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.borax12.materialdaterangepicker.date.DatePickerDialog;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -36,6 +38,8 @@ import info.japos.pp.R;
 import info.japos.pp.activities.StatistikActivity;
 import info.japos.pp.adapters.JadwalAdapter;
 import info.japos.pp.adapters.StatistikViewAdapter;
+import info.japos.pp.bus.BusProvider;
+import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.models.kbm.common.ItemSectionInterface;
 import info.japos.pp.models.kbm.common.SectionGroupTitle;
 import info.japos.pp.models.kbm.kelas.Kelas;
@@ -53,6 +57,10 @@ import retrofit2.Response;
 public class SttKelasFragment extends Fragment implements View.OnClickListener, OnItemSelected, SwipeRefreshLayout.OnRefreshListener, DatePickerDialog.OnDateSetListener {
 
     private static String TAG = SttKelasFragment.class.getSimpleName();
+
+    private int userDomainId;
+
+    private Bus mBus = BusProvider.getInstance();
 
     private OnFragmentInteractionListener mListener;
     private ArrayList<ItemSectionInterface> mKelasAndSectionList = new ArrayList<>();
@@ -81,6 +89,15 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // get bundle params
+        Bundle args = getArguments();
+        userDomainId = args.getInt("UserDomainId");
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -88,6 +105,9 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
         // butter knife binding
         ButterKnife.bind(this, view);
+
+        // bus register
+        mBus.register(this);
 
         // shared preferences
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -171,7 +191,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
         mCallKelas = ServiceGenerator
                 .createService(KelasService.class)
-                .getClassActive(Utils.formatApiDate(cal.getTime()), Utils.formatApiDate(cal2.getTime()));
+                .getClassActive(Utils.formatApiDate(cal.getTime()), Utils.formatApiDate(cal2.getTime()), userDomainId);
 
         // enqueue
         swipeRefreshKelas.setRefreshing(Boolean.TRUE);
@@ -289,6 +309,13 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         getKelasList(this.datePicker, datePickerEnd);
     }
 
+    @Subscribe
+    public void onEventUserDomainChange(UserDomainChangedEvent event) {
+        Log.d(TAG, "Receive: UserDomain changed event");
+        userDomainId = event.getIdentifier();
+        getKelasList(this.datePicker, datePickerEnd);
+    }
+
     @Override
     public void onClick(View view) {
         int id = view.getId();
@@ -330,6 +357,13 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //cancel retrofit
+        if (mCallKelas != null) mCallKelas.cancel();
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
@@ -343,6 +377,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        mBus.unregister(this);
     }
 
 }

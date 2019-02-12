@@ -38,7 +38,7 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-DEBUG"
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.InfoJapos
         }
@@ -99,6 +99,9 @@ dependencies {
     // chart
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
     //    compile 'com.whiteelephant:monthandyearpicker:1.2.0'
+
+    // event bus
+    implementation 'com.squareup:otto:1.3.8'
 
     // date range picker
     implementation 'com.borax12.materialdaterangepicker:library:1.9'

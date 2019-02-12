@@ -29,6 +29,8 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.shagi.materialdatepicker.date.DatePickerFragmentDialog;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -41,6 +43,8 @@ import butterknife.ButterKnife;
 import info.japos.pp.R;
 import info.japos.pp.activities.PresensiActivity;
 import info.japos.pp.adapters.JadwalAdapter;
+import info.japos.pp.bus.BusProvider;
+import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.helper.ShowcasePrefsManager;
 import info.japos.pp.models.PresensiInfoLog;
@@ -52,6 +56,7 @@ import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.retrofit.JadwalService;
 import info.japos.pp.retrofit.PresensiService;
 import info.japos.pp.retrofit.ServiceGenerator;
+import info.japos.pp.view.CustomToast;
 import info.japos.pp.view.EqualSpacingItemDecoration;
 import info.japos.pp.view.MessageBoxDialog;
 import info.japos.pp.view.ProgresDialog;
@@ -71,6 +76,11 @@ public class JadwalPresensiFragment extends Fragment
         DatePickerFragmentDialog.OnDateSetListener {
 
     private static final String TAG = JadwalPresensiFragment.class.getSimpleName();
+
+    private int userDomainId;
+
+    private Bus mBus = BusProvider.getInstance();
+
     private OnFragmentInteractionListener mListener;
     private static final String STATE_DATE_PICKED = "datePicked";
     private Call<List<Jadwal>> mCallJadwal = null;
@@ -107,6 +117,15 @@ public class JadwalPresensiFragment extends Fragment
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // get bundle params
+        Bundle args = getArguments();
+        userDomainId = args.getInt("UserDomainId");
+    }
+
+    @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setHasOptionsMenu(Boolean.FALSE);
@@ -119,6 +138,9 @@ public class JadwalPresensiFragment extends Fragment
 
         // butter knife binding
         ButterKnife.bind(this, view);
+
+        // bus register
+        mBus.register(this);
 
         // bind event onclick to this
         tanggalKMB.setOnClickListener(this);
@@ -280,7 +302,7 @@ public class JadwalPresensiFragment extends Fragment
 
         mCallJadwal = ServiceGenerator
                 .createService(JadwalService.class)
-                .getSchedule(Utils.formatApiDate(cal.getTime()));
+                .getSchedule(Utils.formatApiDate(cal.getTime()), userDomainId);
 
         // enqueue
         swipeRefreshJadwal.setRefreshing(Boolean.TRUE);
@@ -446,7 +468,6 @@ public class JadwalPresensiFragment extends Fragment
 
         // check if the requestCode is the wanted one and if the result is what we are expecting
         if (requestCode == REQUEST_CODE_PRESENSI && resultCode == Activity.RESULT_OK) {
-            Log.d(TAG, "Hore dapet response OK dari Presensi Activity!");
             getJadwalKBM(this.datePicker);
         }
     }
@@ -567,6 +588,13 @@ public class JadwalPresensiFragment extends Fragment
         });
     }
 
+    @Subscribe
+    public void onEventUserDomainChange(UserDomainChangedEvent event) {
+        Log.d(TAG, "Receive: UserDomain changed event");
+        userDomainId = event.getIdentifier();
+        getJadwalKBM(this.datePicker);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -589,5 +617,6 @@ public class JadwalPresensiFragment extends Fragment
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        mBus.unregister(this);
     }
 }
