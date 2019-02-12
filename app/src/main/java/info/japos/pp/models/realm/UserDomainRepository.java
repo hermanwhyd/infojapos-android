@@ -70,4 +70,8 @@ public class UserDomainRepository {
     public void removeUserDomain(UserDomain user) {
         realm.executeTransaction((Realm realm) -> user.removeFromRealm());
     }
+
+    public void removeAll() {
+        realm.executeTransaction((Realm realm) -> realm.clear(UserDomain.class));
+    }
 }

@@ -6,6 +6,7 @@ import android.content.SharedPreferences.Editor;
 import android.util.Log;
 
 import info.japos.pp.models.realm.User;
+import info.japos.pp.models.realm.UserDomainRepository;
 import info.japos.pp.models.realm.UserRepository;
 
 public class SessionManager {
@@ -70,8 +71,10 @@ public class SessionManager {
      */
     public void invalidate() {
         User userLogged = getUserLoged();
-        if (userLogged != null)
+        if (userLogged != null) {
             UserRepository.with(application).removeUser(userLogged);
+            UserDomainRepository.with(application).removeAll();
+        }
         setLogin(Boolean.FALSE);
         removeApiToken();
         removeUserIdLogged();
