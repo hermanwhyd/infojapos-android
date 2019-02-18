@@ -5,6 +5,6 @@ package info.japos.pp.constants;
  */
 
 public interface NetworkConstant {
-//    String API_BASE_URL = "https://api.desajapos.or.id/v1/";
-    String API_BASE_URL = "http://dev.desajapos.or.id/api/v1/";
+    String API_BASE_URL = "https://api.desajapos.or.id/v1/";
+//    String API_BASE_URL = "http://dev.desajapos.or.id/api/v1/";
 }

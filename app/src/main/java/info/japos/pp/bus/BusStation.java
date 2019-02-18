@@ -3,13 +3,13 @@ package info.japos.pp.bus;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
-public class BusProvider {
+public class BusStation {
     private static final Bus BUS = new Bus(ThreadEnforcer.ANY);
 
-    public static Bus getInstance() {
+    public static Bus getBus() {
         return BUS;
     }
 
-    private BusProvider() {
+    private BusStation() {
     }
 }

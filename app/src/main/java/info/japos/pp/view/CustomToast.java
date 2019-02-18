@@ -19,7 +19,7 @@ public class CustomToast {
                     if (toast != null) {
                         toast.cancel();
                     }
-                    toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+                    toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
                     toast.show();
                 }
             });

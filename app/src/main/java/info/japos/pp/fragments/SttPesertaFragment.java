@@ -7,9 +7,11 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,7 +22,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
@@ -33,12 +34,11 @@ import butterknife.ButterKnife;
 import fr.ganfra.materialspinner.MaterialSpinner;
 import info.japos.pp.R;
 import info.japos.pp.adapters.SttPesertaViewAdapter;
-import info.japos.pp.bus.BusProvider;
+import info.japos.pp.bus.BusStation;
 import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.models.ClassParticipant;
 import info.japos.pp.models.Custom.StringWithTag;
 import info.japos.pp.models.kbm.kelas.Kelas;
-import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.pp.retrofit.KelasService;
 import info.japos.pp.retrofit.ServiceGenerator;
@@ -64,10 +64,6 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
 
     private int userDomainId;
 
-    private Bus mBus = BusProvider.getInstance();
-
-    private OnFragmentInteractionListener mListener;
-
     private List<ClassParticipant> pesertaList = new ArrayList<>(0);
     private SttPesertaViewAdapter pesertaAdapter;
     private Integer kelasId;
@@ -82,10 +78,6 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction("Statistik Peserta");
-        }
-
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_stt_peserta, container, false);
     }
@@ -100,6 +92,14 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        // register bus
+        BusStation.getBus().register(this);
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -107,9 +107,6 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
 
         // butter knife binding
         ButterKnife.bind(this, view);
-
-        // bus register
-        mBus.register(this);
 
         // init spinner
         initSpinnerKelas();
@@ -132,6 +129,14 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
 
         // init
         getKelasList();
+    }
+
+    protected FragmentActivity getActivityNonNull() {
+        if (super.getActivity() != null) {
+            return super.getActivity();
+        } else {
+            throw new RuntimeException("null returned from getActivityNonNull()");
+        }
     }
 
     private void initSpinnerKelas() {
@@ -315,18 +320,9 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-        mBus.unregister(this);
+        // change toolbar title
+        Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
+        toolbar.setTitle("Jadwal KBM");
     }
 
     @Override
@@ -339,5 +335,13 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
         if (mCallKelas != null) {
             mCallKelas.cancel();
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // unregister bus
+        BusStation.getBus().unregister(this);
     }
 }

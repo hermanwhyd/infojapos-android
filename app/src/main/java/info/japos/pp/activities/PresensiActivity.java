@@ -11,12 +11,14 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.LayoutInflaterCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -27,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.mikepenz.iconics.context.IconicsLayoutInflater2;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -43,11 +46,11 @@ import info.japos.pp.fragments.JadwalPresensiFragment;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.helper.ShowcasePrefsManager;
 import info.japos.pp.helper.ToolbarPresensiActionModeCallback;
-import info.japos.pp.models.kbm.jadwal.Jadwal;
 import info.japos.pp.models.Peserta;
 import info.japos.pp.models.Presensi;
 import info.japos.pp.models.PresensiInfoLog;
-import info.japos.pp.models.enums.PresensiKet;
+import info.japos.pp.models.enums.PresensiStatus;
+import info.japos.pp.models.kbm.jadwal.Jadwal;
 import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.models.realm.Enums;
 import info.japos.pp.models.realm.EnumsRepository;
@@ -100,7 +103,6 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     // Showcase config
     private static final String SHOWCASE_ID = "PresensiShowCase";
-    private ShowcasePrefsManager showcasePrefsManager;
 
     private SessionManager sessionManager;
     private ActionMode mActionMode;
@@ -112,16 +114,19 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        LayoutInflaterCompat.setFactory2(getLayoutInflater(), new IconicsLayoutInflater2(getDelegate()));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_presensi);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(getSupportActionBar() != null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         // binding
         ButterKnife.bind(this);
         swipeRefreshPresensi.setOnRefreshListener(this);
 
         // shared preferences
-        showcasePrefsManager = new ShowcasePrefsManager(this, SHOWCASE_ID);
+        ShowcasePrefsManager showcasePrefsManager = new ShowcasePrefsManager(this, SHOWCASE_ID);
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         // init index sorting
@@ -197,7 +202,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         swipeToAction = new SwipeToAction(presensiView, new SwipeToAction.SwipeListener<Peserta>() {
             @Override
             public boolean swipeLeft(Peserta itemData) {
-                updateKetPresensi(presensi, itemData, PresensiKet.H);
+                updateKetPresensi(presensi, itemData, PresensiStatus.H, "");
                 return true;
             }
 
@@ -290,18 +295,13 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                 ? 0 : izinReasons.indexOf(peserta.getKeterangan()) > -1
                 ? izinReasons.indexOf(peserta.getKeterangan()) : 0);
 
-        Log.d(TAG, "Index Reason: " + idxChecked);
-
         new MaterialDialog.Builder(PresensiActivity.this)
                 .title("Alasan Izin")
                 .items(this.izinReasons)
                 .itemsCallbackSingleChoice(
                         idxChecked,
                         (dialog, view, which, text) -> {
-                            peserta.setKeterangan(text.toString());
-                            Log.d(TAG, "Alasan izin: " + text);
-
-                            updateKetPresensi(presensi, peserta, PresensiKet.I);
+                            updateKetPresensi(presensi, peserta, PresensiStatus.I, text.toString());
                             return true; // allow selection
                         })
                 .onNegative((dialog, which) -> CustomToast.show(this, "Izin berhasil dibatalkan"))
@@ -314,24 +314,26 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
 
     /**
      * Update keterangan (HASI) presensi
-     *
-     * @param presensi
+     *  @param presensi
      * @param peserta
-     * @param ket
+     * @param status
+     * @param keterangan
      */
-    private void updateKetPresensi(Presensi presensi, Peserta peserta, final PresensiKet ket) {
-        // check if same keterangan
-        if (peserta.getStatus().equalsIgnoreCase(ket.name()) && !peserta.getStatus().equalsIgnoreCase(ket.I.name())) {
-            CustomToast.show(getApplication(), peserta.getNamaPanggilan() + " telah diset " + ket.getValue() + " sebelumnya!");
+    private void updateKetPresensi(Presensi presensi, Peserta peserta, final PresensiStatus status, String keterangan) {
+        if (peserta.getStatus().equalsIgnoreCase(status.name()) && peserta.getKeterangan().equalsIgnoreCase(keterangan)) {
+            CustomToast.show(getApplication(), peserta.getNamaPanggilan() + " telah diset " + status.getValue() + " sebelumnya!");
             return;
         }
 
-        updateKetPresensi(presensi, Arrays.asList(peserta), ket);
+        updateKetPresensi(presensi, Arrays.asList(peserta), status, keterangan);
     }
 
-    private void updateAllSelectedItem(final PresensiKet ket) {
-        Log.d(TAG, "Selected : " + GsonUtil.getInstance().toJson(presensiAdapter.getSelectedPeserta()));
-        updateKetPresensi(presensi, presensiAdapter.getSelectedPeserta(), ket);
+    /**
+     * Batch update
+     * @param status
+     */
+    private void updateAllSelectedItem(final PresensiStatus status) {
+        updateKetPresensi(presensi, presensiAdapter.getSelectedPeserta(), status, "");
     }
 
     /**
@@ -339,18 +341,14 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
      *
      * @param presensi
      * @param pesertaList
-     * @param ket
+     * @param status
      */
-    private void updateKetPresensi(Presensi presensi, List<Peserta> pesertaList, final PresensiKet ket) {
+    private void updateKetPresensi(Presensi presensi, List<Peserta> pesertaList, final PresensiStatus status, String keterangan) {
         // update presensi
-        for (Peserta peserta : pesertaList) {
-            peserta.setStatus(ket.name());
-        }
-
         presensi.getListPeserta().clear();
-        presensi.getListPeserta().addAll(pesertaList);
-
-//        Log.i(TAG, "Update ket presensi: PresensiId->" + presensi.getId() + ", Object->" + GsonUtil.getInstance().toJson(presensi));
+        for (Peserta peserta : pesertaList) {
+            presensi.getListPeserta().add(new Peserta(peserta, status.name(), keterangan));
+        }
 
         swipeRefreshPresensi.setRefreshing(Boolean.TRUE);
         mCallUpdPresensi = ServiceGenerator
@@ -362,7 +360,14 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
             public void onResponse(Call<CommonResponse> call, Response<CommonResponse> response) {
                 swipeRefreshPresensi.setRefreshing(Boolean.FALSE);
                 if (response.isSuccessful() && response.code() == 200) {
-                    showSuccessUpdateSnackbar(pesertaList, ket);
+                    // update preference
+                    for (Peserta peserta : pesertaList) {
+                        peserta.setStatus(status.name());
+                        peserta.setKeterangan(keterangan);
+                    }
+
+                    // show snack
+                    showSuccessUpdateSnackbar(pesertaList, status);
                     presensiAdapter.notifyDataSetChanged();
                 } else {
                     CommonResponse commonResponse = ErrorUtils.parseError(response);
@@ -463,13 +468,13 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
     public void onPresensiMenuAction(Peserta peserta, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.mn_hadir:
-                updateKetPresensi(presensi, peserta, PresensiKet.H);
+                updateKetPresensi(presensi, peserta, PresensiStatus.H, "");
                 break;
             case R.id.mn_izin:
                 updateKetAlasanPresensi(presensi, peserta);
                 break;
             case R.id.mn_alpa:
-                updateKetPresensi(presensi, peserta, PresensiKet.A);
+                updateKetPresensi(presensi, peserta, PresensiStatus.A, "");
                 break;
             case R.id.mn_info:
                 showMenuInfo(peserta);
@@ -534,7 +539,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
         if (view != null) Utils.displayNetworkErrorSnackBar(view, null);
     }
 
-    private void showSuccessUpdateSnackbar(List<Peserta> pesertaList, PresensiKet ket) {
+    private void showSuccessUpdateSnackbar(List<Peserta> pesertaList, PresensiStatus ket) {
         View view = findViewById(android.R.id.content);
         if (view != null) {
             Peserta firstPeserta = pesertaList.get(0);
@@ -554,7 +559,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
      *
      * @param ket
      */
-    public void markAllSelected(PresensiKet ket) {
+    public void markAllSelected(PresensiStatus ket) {
         new MaterialDialog.Builder(this)
                 .title("Tandai semua peserta?")
                 .content(String.format("Tandai semua peserta yang dipilih sebagai %s?", ket.getValue()))
@@ -583,7 +588,7 @@ public class PresensiActivity extends AppCompatActivity implements PresensiViewA
                             // update as shared prefference
                             SharedPreferences.Editor editor = sharedpreferences.edit();
                             editor.putInt("prefSortingIdx", which);
-                            editor.commit();
+                            editor.apply();
 
                             return true; // allow selection
                         })

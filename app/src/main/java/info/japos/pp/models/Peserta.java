@@ -42,6 +42,15 @@ public class Peserta implements Comparable<Peserta>{
         this.jamaahId = jamaahId;
     }
 
+    public Peserta(Peserta peserta, String status, String keterangan) {
+        this.jamaahId = peserta.getJamaahId();
+        this.namaPanggilan = peserta.getNamaPanggilan();
+        this.namaLengkap = peserta.getNamaLengkap();
+        this.kelompok = peserta.getKelompok();
+        this.status = status;
+        this.keterangan = keterangan;
+    }
+
     public Integer getJamaahId() {
         return jamaahId;
     }

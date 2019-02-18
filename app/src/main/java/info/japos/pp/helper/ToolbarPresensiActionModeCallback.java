@@ -7,7 +7,7 @@ import android.view.MenuItem;
 
 import info.japos.pp.R;
 import info.japos.pp.activities.PresensiActivity;
-import info.japos.pp.models.enums.PresensiKet;
+import info.japos.pp.models.enums.PresensiStatus;
 
 /**
  * Created by HWAHYUDI on 02-Jan-18.
@@ -40,10 +40,10 @@ public class ToolbarPresensiActionModeCallback implements ActionMode.Callback {
     public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.mn_sa_hadir:
-                ((PresensiActivity)activity).markAllSelected(PresensiKet.H);
+                ((PresensiActivity)activity).markAllSelected(PresensiStatus.H);
                 break;
             case R.id.mn_sa_alpa:
-                ((PresensiActivity)activity).markAllSelected(PresensiKet.A);
+                ((PresensiActivity)activity).markAllSelected(PresensiStatus.A);
                 break;
         }
         return false;

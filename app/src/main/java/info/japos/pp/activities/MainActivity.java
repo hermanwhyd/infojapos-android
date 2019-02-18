@@ -28,7 +28,7 @@ import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
-import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,17 +37,16 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
-import info.japos.pp.bus.BusProvider;
+import info.japos.pp.bus.BusStation;
+import info.japos.pp.bus.events.FragmentResumedEvent;
 import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.constants.AppConstant;
 import info.japos.pp.fragments.AboutDialog;
 import info.japos.pp.fragments.JadwalPresensiFragment;
 import info.japos.pp.fragments.SttKelasFragment;
-import info.japos.pp.fragments.SttPesertaFragment;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.models.ApplicationInfo.ApplicationInfo;
 import info.japos.pp.models.ApplicationInfo.VersionInfo;
-import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.network.CommonResponse;
 import info.japos.pp.models.realm.User;
 import info.japos.pp.models.realm.UserDomain;
@@ -63,12 +62,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity{
     private static String TAG = MainActivity.class.getSimpleName();
 
     //save our header or result
     private AccountHeader headerResult = null;
     private Drawer result = null;
+    private User userLogged;
 
     private Calendar calendar = Calendar.getInstance();
     private Call<VersionInfo> callVersion;
@@ -78,9 +78,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     @BindView (R.id.domain_info)
     TextView tvDomainInfo;
-
-    // Bus
-    private Bus mBus = BusProvider.getInstance();
 
     // TextDrawable
     private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL; // or use DEFAULT
@@ -105,6 +102,13 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
+    protected void onPostResume() {
+        super.onPostResume();
+
+        BusStation.getBus().register(this);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -115,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         sharedpreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         // check session
-        User userLogged = session.getUserLoged();
+        userLogged = session.getUserLoged();
         if (!session.isLoggedIn() || userLogged == null) {
             performLogout();
             return;
@@ -159,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 .withOnAccountHeaderListener((view, profile, current) -> {
                     // Toast notif domain changed
                     if (profile instanceof IDrawerItem && !current) {
-                        CustomToast.show(getBaseContext(), String.format("%s", profile.getEmail().getText()));
                         tvDomainInfo.setText(String.format("%s %s", profile.getName(), profile.getEmail().getText()));
 
                         // save selected profile into realm db
@@ -168,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                         (UserRepository.with(this)).AddUser(userLoggedUpd);
 
                         // send event
-                        mBus.post(new UserDomainChangedEvent(profileDomain.getId()));
+                        BusStation.getBus().post(new UserDomainChangedEvent(profileDomain.getId()));
                     }
 
                     //false if you have not consumed the event and it should close the drawer
@@ -188,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                         new PrimaryDrawerItem().withName("Presensi").withIcon(FontAwesome.Icon.faw_leanpub).withIdentifier(11),
                         new ExpandableBadgeDrawerItem().withName("Statistik Kehadiran").withIcon(FontAwesome.Icon.faw_chart_pie).withIdentifier(20).withSelectable(false).withSubItems(
                             new SecondaryDrawerItem().withName("Kelas").withLevel(2).withIcon(FontAwesome.Icon.faw_chart_bar1).withIdentifier(21),
-                            new SecondaryDrawerItem().withName("Peserta").withLevel(2).withIcon(FontAwesome.Icon.faw_user1).withIdentifier(22)
+                            new SecondaryDrawerItem().withName("Peserta").withLevel(2).withIcon(FontAwesome.Icon.faw_user1).withIdentifier(22).withSelectable(false)
                         ),
                         new DividerDrawerItem(),
                         new SecondaryDrawerItem().withName("Logout").withIcon(FontAwesome.Icon.faw_sign_out_alt).withIdentifier(31).withSelectable(false),
@@ -207,7 +210,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                         } else if (drawerItem.getIdentifier() == 21) {
                             fragment = new SttKelasFragment();
                         } else if (drawerItem.getIdentifier() == 22) {
-                            fragment = new SttPesertaFragment();
+                            MessageBoxDialog.Show(this, "Info", "Halaman ini sedang dalam pengembangan.");
+//                            fragment = new SttPesertaFragment();
                         } else if (drawerItem.getIdentifier() == 31) {
                             performLogout();
                         } else if (drawerItem.getIdentifier() == 32) {
@@ -245,10 +249,21 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             // set the selection to the item with the identifier 11
             result.setSelection(11, true);
 
-            //set the active profile
-            tvDomainInfo.setText(String.format("%s %s", userLogged.getActiveUserDomain().getPembina(), userLogged.getActiveUserDomain().getNama()));
-            headerResult.setActiveProfile(userLogged.getActiveUserDomain().getId());
+            // set active profile domain
+            setActiveProfileDomain();
         }
+    }
+
+    private void setActiveProfileDomain() {
+        //set the active profile
+        tvDomainInfo.setText(String.format("%s %s", userLogged.getActiveUserDomain().getPembina(), userLogged.getActiveUserDomain().getNama()));
+        headerResult.setActiveProfile(userLogged.getActiveUserDomain().getId());
+    }
+
+    @Subscribe
+    public void onFragmentResume(FragmentResumedEvent fm) {
+        Log.i(TAG, "EventReceived: fragment resumed");
+        setActiveProfileDomain();
     }
 
     /**
@@ -262,12 +277,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             public void onResponse(Call<VersionInfo> call, Response<VersionInfo> response) {
                 if (response.isSuccessful() && response.code() == 200) {
                     VersionInfo versionInfo = response.body();
-                    Log.d(TAG, "Version loaded, response: " + versionInfo);
-
-                    // save into preff
-                    SharedPreferences.Editor editor = sharedpreferences.edit();
-                    editor.putLong(AppConstant.LAST_CHECK_UPDATE, calendar.getTimeInMillis());
-                    editor.apply();
 
                     // compare
                     if ((appInfo.getVersionCode() < versionInfo.getVersionCode()
@@ -285,6 +294,11 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                                 .autoDismiss(Boolean.FALSE)
                                 .show();
                     } else if (appInfo.getVersionCode() < versionInfo.getVersionCode()) {
+                        // save into preff
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putLong(AppConstant.LAST_CHECK_UPDATE, calendar.getTimeInMillis());
+                        editor.apply();
+
                         // reminder only
                         new MaterialDialog.Builder(MainActivity.this)
                                 .title("Update Aplikasi?")
@@ -345,11 +359,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
-    public void onFragmentInteraction(String title) {
-        getSupportActionBar().setTitle(title);
-    }
-
-    @Override
     public void onBackPressed() {
         //handle the back press :D close the drawer first and if the drawer is closed close the activity
         if (result != null && result.isDrawerOpen()) {
@@ -370,4 +379,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         if (callLogout != null) callLogout.cancel();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG, "Main Pause");
+        BusStation.getBus().unregister(this);
+    }
 }

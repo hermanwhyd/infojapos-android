@@ -1,19 +1,17 @@
 package info.japos.pp.models.enums;
 
-import android.graphics.Color;
-
 /**
  * Created by HWAHYUDI on 24-Dec-17.
  */
 
-public enum PresensiKet {
+public enum PresensiStatus {
     H("Hadir", "#00E676"), // green
     A("Alpa", "#FF3D00"), // red
     I("Izin", "#FF9100"); // orange
 
     private String value, color;
 
-    PresensiKet(final String value, final String color) {
+    PresensiStatus(final String value, final String color) {
         this.value = value;
         this.color = color;
     }

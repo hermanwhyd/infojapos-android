@@ -5,14 +5,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,7 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.borax12.materialdaterangepicker.date.DatePickerDialog;
-import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
@@ -36,14 +38,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
 import info.japos.pp.activities.StatistikActivity;
-import info.japos.pp.adapters.JadwalAdapter;
 import info.japos.pp.adapters.StatistikViewAdapter;
-import info.japos.pp.bus.BusProvider;
+import info.japos.pp.bus.BusStation;
+import info.japos.pp.bus.events.FragmentResumedEvent;
 import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.models.kbm.common.ItemSectionInterface;
 import info.japos.pp.models.kbm.common.SectionGroupTitle;
 import info.japos.pp.models.kbm.kelas.Kelas;
-import info.japos.pp.models.listener.OnFragmentInteractionListener;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.pp.retrofit.KelasService;
 import info.japos.pp.retrofit.ServiceGenerator;
@@ -60,9 +61,6 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
     private int userDomainId;
 
-    private Bus mBus = BusProvider.getInstance();
-
-    private OnFragmentInteractionListener mListener;
     private ArrayList<ItemSectionInterface> mKelasAndSectionList = new ArrayList<>();
     private StatistikViewAdapter sttViewAdapter;
     private Call<List<Kelas>> mCallKelas;
@@ -81,10 +79,6 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction("Statistik Kelas");
-        }
-
         return inflater.inflate(R.layout.fragment_statistik, container,false);
     }
 
@@ -94,7 +88,18 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
         // get bundle params
         Bundle args = getArguments();
-        userDomainId = args.getInt("UserDomainId");
+        if (args != null) userDomainId = args.getInt("UserDomainId");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // register bus
+        BusStation.getBus().register(this);
+
+        // sent event
+        new Handler().postDelayed(() -> BusStation.getBus().post(new FragmentResumedEvent()), 500);
     }
 
     @Override
@@ -106,11 +111,8 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         // butter knife binding
         ButterKnife.bind(this, view);
 
-        // bus register
-        mBus.register(this);
-
         // shared preferences
-        sharedpreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sharedpreferences = PreferenceManager.getDefaultSharedPreferences(getActivityNonNull());
 
         // bind event onclick to this
         periode.setOnClickListener(this);
@@ -142,9 +144,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         periode.setInputType(InputType.TYPE_NULL);
 
         // post runnable to run fetching data
-        swipeRefreshKelas.postDelayed(() -> {
-            getKelasList(datePicker, datePickerEnd);
-        }, 100);
+        swipeRefreshKelas.postDelayed(() -> getKelasList(datePicker, datePickerEnd), 100);
     }
 
     private void initBundleHandler(Bundle savedInstanceState) {
@@ -166,6 +166,18 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
                 datePickerEnd.add(Calendar.MONTH, 1);
                 datePickerEnd.set(Calendar.DATE, cycleDate);
             }
+        }
+    }
+
+    protected FragmentActivity getActivityNonNull() {
+        FragmentActivity activity = this.getActivity();
+        if (activity == null) {
+            return null;
+//            throw new IllegalStateException(
+//                "Fragment " + this + " not attached to an activity."
+//            );
+        } else {
+            return activity;
         }
     }
 
@@ -199,7 +211,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
             @Override
             public void onResponse(Call<List<Kelas>> call, Response<List<Kelas>> response) {
                 swipeRefreshKelas.setRefreshing(Boolean.FALSE);
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
                     List<Kelas> newKelasList = response.body();
                     getKelasAndSectionList(newKelasList);
 
@@ -210,7 +222,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
                     // show notif list updated
                     if (!isFirstLoad) {
-                        Toast.makeText(getActivity(), R.string.list_updated, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivityNonNull(), R.string.list_updated, Toast.LENGTH_SHORT).show();
                     } else {
                         isFirstLoad = Boolean.FALSE;
                     }
@@ -224,10 +236,10 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
                     noResultInfo.setVisibility(View.VISIBLE);
                     switch (response.code()) {
                         case 500:
-                            Toast.makeText(getActivity(), "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivityNonNull(), "Terjadi kesalahan di server", Toast.LENGTH_SHORT).show();
                             break;
                         default:
-                            Toast.makeText(getActivity(), "Terjadi kesalahan yang tidak diketahui", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivityNonNull(), "Terjadi kesalahan yang tidak diketahui", Toast.LENGTH_SHORT).show();
                             break;
                     }
                 }
@@ -278,8 +290,8 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
                 datePickerEnd.get(Calendar.DAY_OF_MONTH)
         );
 
-        dpd.setAccentColor(ContextCompat.getColor(getActivity(), R.color.colorPrimaryDarker));
-        dpd.show(getActivity().getFragmentManager(), "Datepickerdialog");
+        dpd.setAccentColor(ContextCompat.getColor(getActivityNonNull(), R.color.colorPrimaryDarker));
+        dpd.show(getActivityNonNull().getFragmentManager(), "Datepickerdialog");
     }
 
     @Override
@@ -311,7 +323,6 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
     @Subscribe
     public void onEventUserDomainChange(UserDomainChangedEvent event) {
-        Log.d(TAG, "Receive: UserDomain changed event");
         userDomainId = event.getIdentifier();
         getKelasList(this.datePicker, datePickerEnd);
     }
@@ -321,7 +332,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         int id = view.getId();
         switch (id) {
             case R.id.btn_submit_pp:
-                Intent i = new Intent(getActivity(), StatistikActivity.class);
+                Intent i = new Intent(getActivityNonNull(), StatistikActivity.class);
                 i.putExtra("KELASID", sttViewAdapter.getSelectedKelas().getId());
                 i.putExtra("KELASNAME", sttViewAdapter.getSelectedKelas().getKelas());
                 i.putExtra("TIMESTAMP1", Utils.formatApiDate(datePicker.getTime()));
@@ -349,7 +360,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
      */
     private void showNetworkErrorSnackbar() {
         try {
-            View view = getActivity().findViewById(android.R.id.content);
+            View view = getActivityNonNull().findViewById(android.R.id.content);
             Utils.displayNetworkErrorSnackBar(view, null);
         } catch (NullPointerException npe) {
             npe.printStackTrace();
@@ -366,18 +377,17 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement OnFragmentInteractionListener");
-        }
+
+        // change toolbar title
+        Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
+        toolbar.setTitle("Statistik Kelas");
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-        mBus.unregister(this);
-    }
+    public void onPause() {
+        super.onPause();
 
+        // unregister bus
+        BusStation.getBus().unregister(this);
+    }
 }

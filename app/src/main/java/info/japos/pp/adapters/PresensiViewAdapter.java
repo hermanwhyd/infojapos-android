@@ -23,7 +23,7 @@ import java.util.List;
 
 import info.japos.pp.R;
 import info.japos.pp.models.Peserta;
-import info.japos.pp.models.enums.PresensiKet;
+import info.japos.pp.models.enums.PresensiStatus;
 import info.japos.utils.BabushkaText;
 import info.japos.utils.Utils;
 import info.japos.vendor.SwipeToAction;
@@ -81,11 +81,11 @@ public class PresensiViewAdapter extends RecyclerView.Adapter<PresensiViewAdapte
 
         // reset dulu
         holder.keterangan.reset();
-        holder.keterangan.addPiece(new BabushkaText.Piece.Builder(PresensiKet.valueOf(peserta.getStatus()).getValue())
-                .textColor(Color.parseColor(PresensiKet.valueOf(peserta.getStatus()).getColor()))
+        holder.keterangan.addPiece(new BabushkaText.Piece.Builder(PresensiStatus.valueOf(peserta.getStatus()).getValue())
+                .textColor(Color.parseColor(PresensiStatus.valueOf(peserta.getStatus()).getColor()))
                 .style(Typeface.BOLD)
                 .build());
-        if (peserta.getStatus().equalsIgnoreCase(PresensiKet.I.name())) {
+        if (peserta.getStatus().equalsIgnoreCase(PresensiStatus.I.name())) {
             holder.keterangan.addPiece(new BabushkaText.Piece.Builder("\n" + peserta.getKeterangan())
                     .textSizeRelative(0.7f).textColor(Utils.getColor(context, R.color.text_sub_gray))
                     .build());

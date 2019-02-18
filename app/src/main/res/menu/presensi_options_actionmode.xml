@@ -4,11 +4,13 @@
     <item
         android:id="@+id/mn_sa_hadir"
         android:title="Tandai Hadir"
-        app:showAsAction="collapseActionView|withText" />
+        android:icon="@drawable/alpha_h_box_outline"
+        app:showAsAction="ifRoom|withText" />
 
     <item
         android:id="@+id/mn_sa_alpa"
         android:title="Tandai Alpa"
-        app:showAsAction="collapseActionView|withText" />
+        android:icon="@drawable/alpha_a_box_outline"
+        app:showAsAction="ifRoom|withText" />
 
 </menu>

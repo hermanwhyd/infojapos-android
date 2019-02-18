@@ -11,7 +11,7 @@ import de.codecrafters.tableview.toolkit.SortStateViewProviders;
 import de.codecrafters.tableview.toolkit.TableDataRowBackgroundProviders;
 import info.japos.pp.R;
 import info.japos.pp.models.statistik.StatistikGeneral;
-import info.japos.pp.models.enums.PresensiKet;
+import info.japos.pp.models.enums.PresensiStatus;
 
 /**
  * Created by HWAHYUDI on 18-Feb-18.
@@ -48,8 +48,8 @@ public class SortableStatistikPesertaTableView extends SortableTableView<Statist
         setColumnModel(tableColumnWeightModel);
 
         setColumnComparator(0, StatistikPesertaComparator.getSttNamaPesertaComparator());
-        setColumnComparator(1, StatistikPesertaComparator.getSttHadirComparator(PresensiKet.H.ordinal()));
-        setColumnComparator(2, StatistikPesertaComparator.getSttHadirComparator(PresensiKet.A.ordinal()));
-        setColumnComparator(3, StatistikPesertaComparator.getSttHadirComparator(PresensiKet.I.ordinal()));
+        setColumnComparator(1, StatistikPesertaComparator.getSttHadirComparator(PresensiStatus.H.ordinal()));
+        setColumnComparator(2, StatistikPesertaComparator.getSttHadirComparator(PresensiStatus.A.ordinal()));
+        setColumnComparator(3, StatistikPesertaComparator.getSttHadirComparator(PresensiStatus.I.ordinal()));
     }
 }
