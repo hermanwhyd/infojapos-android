@@ -44,7 +44,7 @@
     <string name="presensi_infodetail"><![CDATA[diupdate oleh <b>%s</b> pada <b>%s</b>]]></string>
     <string name="presensi_delete"><![CDATA[presensi KBM kelas <b>%s</b> dijadwal <b>%s, pk %s-%s</b> akan dihapus dan tidak bisa dikembalikan lagi]]></string>
     <string name="presensi_infostatistik"><![CDATA[
-                                            presensi KBM kelas <b>%s</b> dibuat oleh <b>%s</b> pada <b>%s</b>\n\n</br>
+                                            presensi KBM kelas <b>%s</b> dibuat oleh <b>%s</b> pada <b>%s</b>\n</br>
                                             <b>Kehadiran:</b> Hadir: %s, Alpa: %s, Izin: %s
                                             ]]></string>
     <string name="presensi_infostatistik_empty"><![CDATA[

@@ -62,6 +62,8 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
     private Call<List<ClassParticipant>> mCallPeserta;
     private Boolean isFirstLoad = Boolean.TRUE;
 
+    private static final String STATE_USERDOMAIN_ID = "userDomainId";
+
     private int userDomainId;
 
     private List<ClassParticipant> pesertaList = new ArrayList<>(0);
@@ -99,6 +101,20 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
         BusStation.getBus().register(this);
     }
 
+    private void initBundleHandler(Bundle savedInstanceState) {
+        // read state of datepicker from prev changes
+        if (savedInstanceState != null) {
+            userDomainId = savedInstanceState.getInt(STATE_USERDOMAIN_ID, 0);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putInt(STATE_USERDOMAIN_ID, userDomainId);
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -110,6 +126,9 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
 
         // init spinner
         initSpinnerKelas();
+
+        // init saved instance state
+        initBundleHandler(savedInstanceState);
 
         // swipe refresh
         swipeRefreshPeserta.setEnabled(Boolean.FALSE);
@@ -320,9 +339,15 @@ public class SttPesertaFragment extends Fragment implements View.OnClickListener
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
         // change toolbar title
-        Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
-        toolbar.setTitle("Jadwal KBM");
+        try {
+            Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
+            toolbar.setTitle("Statistik Peserta");
+        } catch (NullPointerException npe) {
+            Log.e(TAG, npe.getMessage(), npe);
+            npe.printStackTrace();
+        }
     }
 
     @Override

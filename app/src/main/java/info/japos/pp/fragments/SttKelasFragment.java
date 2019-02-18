@@ -38,7 +38,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
 import info.japos.pp.activities.StatistikActivity;
-import info.japos.pp.adapters.StatistikViewAdapter;
+import info.japos.pp.adapters.SttJadwalViewAdapter;
 import info.japos.pp.bus.BusStation;
 import info.japos.pp.bus.events.FragmentResumedEvent;
 import info.japos.pp.bus.events.UserDomainChangedEvent;
@@ -61,8 +61,10 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
     private int userDomainId;
 
+    private static final String STATE_USERDOMAIN_ID = "userDomainId";
+
     private ArrayList<ItemSectionInterface> mKelasAndSectionList = new ArrayList<>();
-    private StatistikViewAdapter sttViewAdapter;
+    private SttJadwalViewAdapter sttViewAdapter;
     private Call<List<Kelas>> mCallKelas;
     private boolean isFirstLoad = Boolean.TRUE;
     private Calendar datePicker = Calendar.getInstance();
@@ -128,13 +130,13 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
-                return StatistikViewAdapter.SECTION_VIEW == sttViewAdapter.getItemViewType(position) ? recyclerColumnQty.calculateNoOfColumns() : 1;
+                return SttJadwalViewAdapter.SECTION_VIEW == sttViewAdapter.getItemViewType(position) ? recyclerColumnQty.calculateNoOfColumns() : 1;
             }
         });
 
         kelasView.addItemDecoration(new EqualSpacingItemDecoration(12, EqualSpacingItemDecoration.GRID)); // 8px. In practice, you'll want to use getDimensionPixelSize
         kelasView.setLayoutManager(gridLayoutManager);
-        sttViewAdapter = new StatistikViewAdapter(getContext(), this, mKelasAndSectionList);
+        sttViewAdapter = new SttJadwalViewAdapter(getContext(), this, mKelasAndSectionList);
         kelasView.setAdapter(sttViewAdapter);
 
         initBundleHandler(savedInstanceState);
@@ -154,6 +156,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
             Calendar calEndDefault = Calendar.getInstance();
             calEndDefault.add(Calendar.MONTH, 1);
             datePickerEnd.setTimeInMillis(savedInstanceState.getLong("TIMESTAMP2", calEndDefault.getTimeInMillis()));
+            userDomainId = savedInstanceState.getInt(STATE_USERDOMAIN_ID, 0);
         } else {
             int currentDate = datePicker.get(Calendar.DATE);
             int cycleDate = sharedpreferences.getInt("STATISTIK_DATE_CYCLE", 25);
@@ -188,6 +191,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         // save current datepicker
         outState.putLong("TIMESTAMP1", datePicker.getTimeInMillis());
         outState.putLong("TIMESTAMP2", datePickerEnd.getTimeInMillis());
+        outState.putInt(STATE_USERDOMAIN_ID, userDomainId);
     }
 
 
@@ -379,8 +383,13 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         super.onAttach(context);
 
         // change toolbar title
-        Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
-        toolbar.setTitle("Statistik Kelas");
+        try {
+            Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
+            toolbar.setTitle("Statistik Kelas");
+        } catch (NullPointerException npe) {
+            Log.e(TAG, npe.getMessage(), npe);
+            npe.printStackTrace();
+        }
     }
 
     @Override

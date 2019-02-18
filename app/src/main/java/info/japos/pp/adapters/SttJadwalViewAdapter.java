@@ -17,9 +17,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import info.japos.pp.R;
-import info.japos.pp.models.kbm.kelas.Kelas;
 import info.japos.pp.models.kbm.common.ItemSectionInterface;
 import info.japos.pp.models.kbm.common.SectionGroupTitle;
+import info.japos.pp.models.kbm.kelas.Kelas;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.utils.BabushkaText;
 import info.japos.utils.Utils;
@@ -28,7 +28,7 @@ import info.japos.utils.Utils;
  * Created by HWAHYUDI on 19-Dec-17.
  */
 
-public class StatistikViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class SttJadwalViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private WeakReference<Context> mContextWeakReference;
     private ArrayList<ItemSectionInterface> mKelasAndSectionList;
     private OnItemSelected onItemSelectedListener;
@@ -46,7 +46,7 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<RecyclerView.View
             .endConfig()
             .rect();
 
-    public StatistikViewAdapter(Context context, OnItemSelected onItemSelectedListener, ArrayList<ItemSectionInterface> items) {
+    public SttJadwalViewAdapter(Context context, OnItemSelected onItemSelectedListener, ArrayList<ItemSectionInterface> items) {
         this.mContextWeakReference = new WeakReference<>(context);
         this.onItemSelectedListener = onItemSelectedListener;
         this.mKelasAndSectionList = items;
@@ -93,10 +93,16 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         TextDrawable drawable = tBuilder.build(strInisial, mColorGenerator.getColor(kelas.getKelas()));
         myViewHolder.imageView.setImageDrawable(drawable);
         myViewHolder.kelas.setText(kelas.getKelas());
-        myViewHolder.pembinaan.setText(kelas.getPembinaan());
-        myViewHolder.pembina.setText(kelas.getLvPembina() + " " + kelas.getNamaMajelisTaklim());
 
-        // Babushka Text
+        // total peserta
+        myViewHolder.ttlPeserta.reset();
+        myViewHolder.ttlPeserta.addPiece(new BabushkaText.Piece.Builder("  " + kelas.getTotalPeserta() + " Peserta  ")
+                .backgroundColor(Color.parseColor("#01a0c4"))
+                .textColor(Color.WHITE)
+                .build());
+        myViewHolder.ttlPeserta.display();
+
+        // total kbm
         myViewHolder.ttlKBM.reset();
         if (kelas.getTotalKBM() == null) {
             myViewHolder.ttlKBM.addPiece(new BabushkaText.Piece.Builder("  N/A  ")
@@ -186,16 +192,15 @@ public class StatistikViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     public class MyViewHolder extends RecyclerView.ViewHolder {
         View view;
         ImageView imageView, checkIcon;
-        TextView kelas, pembinaan, pembina;
-        BabushkaText ttlKBM;
+        TextView kelas;
+        BabushkaText ttlKBM, ttlPeserta;
 
         public MyViewHolder(View itemView, final Context context) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
             checkIcon = itemView.findViewById(R.id.check_icon);
             kelas = itemView.findViewById(R.id.tv_kelas);
-            pembinaan = itemView.findViewById(R.id.tv_lv_pembinaan);
-            pembina = itemView.findViewById(R.id.tv_pembina);
+            ttlPeserta = itemView.findViewById(R.id.tv_ttl_peserta);
             ttlKBM = itemView.findViewById(R.id.tv_ttl_kbm);
 
             this.view = itemView;

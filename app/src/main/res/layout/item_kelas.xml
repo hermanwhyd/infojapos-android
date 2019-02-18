@@ -9,8 +9,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:background="?android:attr/selectableItemBackground"
         android:layout_height="match_parent"
+        android:background="?android:attr/selectableItemBackground"
         android:orientation="horizontal">
 
         <FrameLayout
@@ -36,35 +36,28 @@
 
         <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
+            android:layout_gravity="center"
             android:layout_width="150dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="@dimen/default_margin"
-            android:layout_height="@dimen/item_height">
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/default_margin">
 
             <TextView
                 android:id="@+id/tv_kelas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center|start"
                 android:text="Kelas"
+                android:textSize="18sp"
+                android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
-            <TextView
-                android:id="@+id/tv_lv_pembinaan"
+            <info.japos.utils.BabushkaText
+                android:id="@+id/tv_ttl_peserta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="10sp"
-                android:text="N/A"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textStyle="bold|italic" />
-
-            <TextView
-                android:id="@+id/tv_pembina"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="N/A"
-                android:layout_gravity="bottom"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textStyle="bold" />
+                android:maxLines="1"
+                android:layout_gravity="center|start"
+                android:text="@string/default_na"/>
         </LinearLayout>
         <RelativeLayout
             android:layout_width="match_parent"

@@ -80,6 +80,7 @@ public class JadwalPresensiFragment extends Fragment
     private int userDomainId = 0;
 
     private static final String STATE_DATE_PICKED = "datePicked";
+    private static final String STATE_USERDOMAIN_ID = "userDomainId";
     private Call<List<Jadwal>> mCallJadwal = null;
     private Call<CommonResponse> mCallPresensi = null;
     private Calendar datePicker = Calendar.getInstance();
@@ -184,6 +185,7 @@ public class JadwalPresensiFragment extends Fragment
         // read state of datepicker from prev changes
         if (savedInstanceState != null) {
             datePicker.setTimeInMillis(savedInstanceState.getLong(STATE_DATE_PICKED, Calendar.getInstance().getTimeInMillis()));
+            userDomainId = savedInstanceState.getInt(STATE_USERDOMAIN_ID, 0);
         }
     }
 
@@ -193,6 +195,7 @@ public class JadwalPresensiFragment extends Fragment
 
         // save current datepicker
         outState.putLong(STATE_DATE_PICKED, datePicker.getTimeInMillis());
+        outState.putInt(STATE_USERDOMAIN_ID, userDomainId);
 
         //cancel retrofit mCallJadwal kalau activity sudah didestroy
         if (mCallJadwal != null) mCallJadwal.cancel();
@@ -615,8 +618,13 @@ public class JadwalPresensiFragment extends Fragment
         super.onAttach(context);
 
         // change toolbar title
-        Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
-        toolbar.setTitle("Jadwal KBM");
+        try {
+            Toolbar toolbar = getActivityNonNull().findViewById(R.id.toolbar);
+            toolbar.setTitle("Jadwal KBM");
+        } catch (NullPointerException npe) {
+            Log.e(TAG, npe.getMessage(), npe);
+            npe.printStackTrace();
+        }
     }
 
     @Override

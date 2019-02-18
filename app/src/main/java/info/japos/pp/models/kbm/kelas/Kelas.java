@@ -30,6 +30,9 @@ public class Kelas implements ItemSectionInterface {
     @SerializedName("ttl_kbm")
     @Expose
     private Integer totalKBM;
+    @SerializedName("ttl_peserta")
+    @Expose
+    private Integer totalPeserta;
     @SerializedName("list_siswa")
     @Expose
     private List<Peserta> listPeserta = null;
@@ -92,6 +95,14 @@ public class Kelas implements ItemSectionInterface {
 
     public void setTotalKBM(Integer totalKBM) {
         this.totalKBM = totalKBM;
+    }
+
+    public Integer getTotalPeserta() {
+        return totalPeserta;
+    }
+
+    public void setTotalPeserta(Integer totalPeserta) {
+        this.totalPeserta = totalPeserta;
     }
 
     @Override
