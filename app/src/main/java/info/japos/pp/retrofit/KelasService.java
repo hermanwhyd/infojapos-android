@@ -4,6 +4,7 @@ import java.util.List;
 
 import info.japos.pp.models.ClassParticipant;
 import info.japos.pp.models.kbm.kelas.Kelas;
+import info.japos.pp.models.kbm.pembinaan.Pembinaan;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -22,4 +23,8 @@ public interface KelasService {
 
     @GET("class/{kelas_id}/peserta")
     Call<List<ClassParticipant>> getClassParticipant(@Path("kelas_id") int kelasId);
+
+    @GET("class/{mtId}/{timestamp1}/{timestamp2}/pembinaan")
+    Call<List<Pembinaan>> getPembinaan(@Path("timestamp1") String periodStart, @Path("timestamp2") String periodEnd, @Path("mtId") int mtId);
+
 }

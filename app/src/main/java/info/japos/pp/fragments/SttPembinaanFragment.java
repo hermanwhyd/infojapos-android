@@ -1,7 +1,6 @@
 package info.japos.pp.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -17,7 +16,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +25,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.borax12.materialdaterangepicker.date.DatePickerDialog;
 import com.squareup.otto.Subscribe;
 
@@ -37,14 +36,12 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import info.japos.pp.R;
-import info.japos.pp.activities.StatistikActivity;
-import info.japos.pp.adapters.SttJadwalViewAdapter;
+import info.japos.pp.adapters.SttPembinaanViewAdapter;
 import info.japos.pp.bus.BusStation;
 import info.japos.pp.bus.events.FragmentResumedEvent;
 import info.japos.pp.bus.events.UserDomainChangedEvent;
 import info.japos.pp.models.kbm.common.ItemSectionInterface;
-import info.japos.pp.models.kbm.common.SectionGroupTitle;
-import info.japos.pp.models.kbm.kelas.Kelas;
+import info.japos.pp.models.kbm.pembinaan.Pembinaan;
 import info.japos.pp.models.listener.OnItemSelected;
 import info.japos.pp.retrofit.KelasService;
 import info.japos.pp.retrofit.ServiceGenerator;
@@ -55,33 +52,36 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SttKelasFragment extends Fragment implements View.OnClickListener, OnItemSelected, SwipeRefreshLayout.OnRefreshListener, DatePickerDialog.OnDateSetListener {
-
+public class SttPembinaanFragment extends Fragment implements View.OnClickListener, OnItemSelected, SwipeRefreshLayout.OnRefreshListener, DatePickerDialog.OnDateSetListener {
     private static String TAG = SttKelasFragment.class.getSimpleName();
 
     private int userDomainId;
 
     private static final String STATE_USERDOMAIN_ID = "userDomainId";
 
-    private ArrayList<ItemSectionInterface> mKelasAndSectionList = new ArrayList<>();
-    private SttJadwalViewAdapter sttViewAdapter;
-    private Call<List<Kelas>> mCallKelas;
+    private ArrayList<ItemSectionInterface> mDataAndSectionList = new ArrayList<>();
+    private SttPembinaanViewAdapter sttViewAdapter;
+    private Call<List<Pembinaan>> mCallPembinaan;
     private boolean isFirstLoad = Boolean.TRUE;
     private Calendar datePicker = Calendar.getInstance();
     private Calendar datePickerEnd = Calendar.getInstance();
     private SharedPreferences sharedpreferences;
 
-    @BindView(R.id.et_periode) EditText periode;
-    @BindView(R.id.rv_kelas) RecyclerView kelasView;
-    @BindView(R.id.tv_no_result) TextView noResultInfo;
-    @BindView(R.id.btn_submit_pp) Button btnNext;
-    @BindView(R.id.swipe_refresh_kelas) SwipeRefreshLayout swipeRefreshKelas;
+    @BindView(R.id.et_periode)
+    EditText periode;
+    @BindView(R.id.rv_list)
+    RecyclerView rcListView;
+    @BindView(R.id.tv_no_result)
+    TextView noResultInfo;
+    @BindView(R.id.btn_submit_pp)
+    Button btnNext;
+    @BindView(R.id.swipe_refresh_list) SwipeRefreshLayout swipeRefreshList;
 
-    public SttKelasFragment() {}
+    public SttPembinaanFragment() {}
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_stt_kelas, container,false);
+        return inflater.inflate(R.layout.fragment_stt_pembinaan, container,false);
     }
 
     @Override
@@ -119,25 +119,25 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         // bind event onclick to this
         periode.setOnClickListener(this);
         btnNext.setOnClickListener(this);
-        swipeRefreshKelas.setOnRefreshListener(this);
+        swipeRefreshList.setOnRefreshListener(this);
 
         // swipe refresh
-        swipeRefreshKelas.setColorSchemeColors(Color.CYAN, Color.YELLOW, Color.BLUE);
+        swipeRefreshList.setColorSchemeColors(Color.CYAN, Color.YELLOW, Color.BLUE);
 
         // RecyclerView
-        RecyclerColumnQty recyclerColumnQty = new RecyclerColumnQty(kelasView.getContext(), R.layout.item_kelas);
-        final GridLayoutManager gridLayoutManager = new GridLayoutManager(kelasView.getContext(),recyclerColumnQty.calculateNoOfColumns());
+        RecyclerColumnQty recyclerColumnQty = new RecyclerColumnQty(rcListView.getContext(), R.layout.item_presensi);
+        final GridLayoutManager gridLayoutManager = new GridLayoutManager(rcListView.getContext(),recyclerColumnQty.calculateNoOfColumns());
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
-                return SttJadwalViewAdapter.SECTION_VIEW == sttViewAdapter.getItemViewType(position) ? recyclerColumnQty.calculateNoOfColumns() : 1;
+                return SttPembinaanViewAdapter.SECTION_VIEW == sttViewAdapter.getItemViewType(position) ? recyclerColumnQty.calculateNoOfColumns() : 1;
             }
         });
 
-        kelasView.addItemDecoration(new EqualSpacingItemDecoration(12, EqualSpacingItemDecoration.GRID)); // 8px. In practice, you'll want to use getDimensionPixelSize
-        kelasView.setLayoutManager(gridLayoutManager);
-        sttViewAdapter = new SttJadwalViewAdapter(getContext(), this, mKelasAndSectionList);
-        kelasView.setAdapter(sttViewAdapter);
+        rcListView.addItemDecoration(new EqualSpacingItemDecoration(12, EqualSpacingItemDecoration.GRID)); // 8px. In practice, you'll want to use getDimensionPixelSize
+        rcListView.setLayoutManager(gridLayoutManager);
+        sttViewAdapter = new SttPembinaanViewAdapter(getContext(), this, mDataAndSectionList);
+        rcListView.setAdapter(sttViewAdapter);
 
         initBundleHandler(savedInstanceState);
 
@@ -146,7 +146,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         periode.setInputType(InputType.TYPE_NULL);
 
         // post runnable to run fetching data
-        swipeRefreshKelas.postDelayed(() -> getKelasList(datePicker, datePickerEnd), 100);
+        swipeRefreshList.postDelayed(() -> getPembinaanList(datePicker, datePickerEnd), 100);
     }
 
     private void initBundleHandler(Bundle savedInstanceState) {
@@ -176,16 +176,13 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         FragmentActivity activity = this.getActivity();
         if (activity == null) {
             return null;
-//            throw new IllegalStateException(
-//                "Fragment " + this + " not attached to an activity."
-//            );
         } else {
             return activity;
         }
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
         // save current datepicker
@@ -195,31 +192,31 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
     }
 
 
-    private void getKelasList(Calendar cal, Calendar cal2) {
-        Log.i(TAG, "Fetching KelasList on '" + Utils.formatApiDate(cal.getTime()) + "' Started");
+    private void getPembinaanList(Calendar cal, Calendar cal2) {
+        Log.i(TAG, "Fetching PembinaanList on '" + Utils.formatApiDate(cal.getTime()) + "' Started");
 
         // reset button next
         itemSelectionChanged(Boolean.FALSE);
 
         // reset if exist
-        if (mCallKelas != null && mCallKelas.isExecuted())
-            mCallKelas.cancel();
+        if (mCallPembinaan != null && mCallPembinaan.isExecuted())
+            mCallPembinaan.cancel();
 
-        mCallKelas = ServiceGenerator
+        mCallPembinaan = ServiceGenerator
                 .createService(KelasService.class)
-                .getClassActive(Utils.formatApiDate(cal.getTime()), Utils.formatApiDate(cal2.getTime()), userDomainId);
+                .getPembinaan(Utils.formatApiDate(cal.getTime()), Utils.formatApiDate(cal2.getTime()), userDomainId);
 
         // enqueue
-        swipeRefreshKelas.setRefreshing(Boolean.TRUE);
-        mCallKelas.enqueue(new Callback<List<Kelas>>() {
+        swipeRefreshList.setRefreshing(Boolean.TRUE);
+        mCallPembinaan.enqueue(new Callback<List<Pembinaan>>() {
             @Override
-            public void onResponse(Call<List<Kelas>> call, Response<List<Kelas>> response) {
-                swipeRefreshKelas.setRefreshing(Boolean.FALSE);
+            public void onResponse(Call<List<Pembinaan>> call, Response<List<Pembinaan>> response) {
+                swipeRefreshList.setRefreshing(Boolean.FALSE);
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Kelas> newKelasList = response.body();
-                    getKelasAndSectionList(newKelasList);
+                    List<Pembinaan> newPembinaanList = response.body();
+                    getDataAndSectionList(newPembinaanList);
 
-                    if (mKelasAndSectionList.isEmpty()) {
+                    if (mDataAndSectionList.isEmpty()) {
                         noResultInfo.setText(R.string.activeclass_noresult);
                         noResultInfo.setVisibility(View.VISIBLE);
                     } else {
@@ -233,11 +230,11 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
                         isFirstLoad = Boolean.FALSE;
                     }
 
-                    Log.i(TAG, "Fetching KelasList Finished");
+                    Log.i(TAG, "Fetching PembinaanList Finished");
                 } else {
                     Log.e(TAG, "Caught error code: " + response.code() + ", message: " + response.message() + ". Details: " + response.raw());
 
-                    getKelasAndSectionList(new ArrayList<>(0));
+                    getDataAndSectionList(new ArrayList<>(0));
                     noResultInfo.setText(R.string.result_error);
                     noResultInfo.setVisibility(View.VISIBLE);
                     switch (response.code()) {
@@ -252,8 +249,8 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
             }
 
             @Override
-            public void onFailure(Call<List<Kelas>> call, Throwable t) {
-                swipeRefreshKelas.setRefreshing(Boolean.FALSE);
+            public void onFailure(Call<List<Pembinaan>> call, Throwable t) {
+                swipeRefreshList.setRefreshing(Boolean.FALSE);
                 t.printStackTrace();
                 showNetworkErrorSnackbar();
             }
@@ -262,22 +259,14 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
     /**
      *
-     * @param newKelasList a new list of object Kelas
+     * @param newPembinaanList a new list of object Kelas
      */
-    private void getKelasAndSectionList(List<Kelas> newKelasList) {
-        mKelasAndSectionList.clear();
-        String lastHeader = "";
-        int size = newKelasList.size();
-
+    private void getDataAndSectionList(List<Pembinaan> newPembinaanList) {
+        mDataAndSectionList.clear();
+        int size = newPembinaanList.size();
         for (int i = 0; i < size; i++) {
-            Kelas k = newKelasList.get(i);
-            String header = k.getPembinaan();
-            if (!TextUtils.equals(lastHeader, header)) {
-                lastHeader = header;
-                mKelasAndSectionList.add(new SectionGroupTitle(header));
-            }
-
-            mKelasAndSectionList.add(k);
+            Pembinaan k = newPembinaanList.get(i);
+            mDataAndSectionList.add(k);
         }
         sttViewAdapter.removeSelection();
     }
@@ -287,7 +276,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
      */
     private void setDateRangePicker() {
         DatePickerDialog dpd = DatePickerDialog.newInstance(
-                SttKelasFragment.this,
+                SttPembinaanFragment.this,
                 datePicker.get(Calendar.YEAR),
                 datePicker.get(Calendar.MONTH),
                 datePicker.get(Calendar.DAY_OF_MONTH),
@@ -305,8 +294,12 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         Log.d(TAG, String.format("Start: %d/%d/%d, End: %d/%d/%d", dayOfMonth, monthOfYear, year, dayOfMonthEnd, monthOfYearEnd, yearEnd));
         datePicker.set(year, monthOfYear, dayOfMonth);
         datePickerEnd.set(yearEnd, monthOfYearEnd, dayOfMonthEnd);
+        refreshDataList();
+    }
+
+    private void refreshDataList() {
         showLabelDatePicker(datePicker, datePickerEnd);
-        getKelasList(datePicker, datePickerEnd);
+        getPembinaanList(datePicker, datePickerEnd);
     }
 
     /**
@@ -324,13 +317,13 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
 
     @Override
     public void onRefresh() {
-        getKelasList(this.datePicker, datePickerEnd);
+        getPembinaanList(this.datePicker, datePickerEnd);
     }
 
     @Subscribe
     public void onEventUserDomainChange(UserDomainChangedEvent event) {
         userDomainId = event.getIdentifier();
-        getKelasList(this.datePicker, datePickerEnd);
+        getPembinaanList(this.datePicker, datePickerEnd);
     }
 
     @Override
@@ -338,20 +331,41 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
         int id = view.getId();
         switch (id) {
             case R.id.btn_submit_pp:
-                Intent i = new Intent(getActivityNonNull(), StatistikActivity.class);
-                i.putExtra("KELASID", sttViewAdapter.getSelectedKelas().getId());
-                i.putExtra("KELASNAME", sttViewAdapter.getSelectedKelas().getKelas());
-                i.putExtra("TIMESTAMP1", Utils.formatApiDate(datePicker.getTime()));
-                i.putExtra("TIMESTAMP2", Utils.formatApiDate(datePickerEnd.getTime()));
-                i.putExtra("LABEL_TIMESTAMP", periode.getText().toString());
-                i.putExtra("LABEL_TOTAL_KBM", sttViewAdapter.getSelectedKelas().getTotalKBM());
+//                Intent i = new Intent(getActivityNonNull(), StatistikActivity.class);
+//                i.putExtra("KELASID", sttViewAdapter.getSelectedKelas().getId());
+//                i.putExtra("KELASNAME", sttViewAdapter.getSelectedKelas().getKelas());
+//                i.putExtra("TIMESTAMP1", Utils.formatApiDate(datePicker.getTime()));
+//                i.putExtra("TIMESTAMP2", Utils.formatApiDate(datePickerEnd.getTime()));
+//                i.putExtra("LABEL_TIMESTAMP", periode.getText().toString());
+//                i.putExtra("LABEL_TOTAL_KBM", sttViewAdapter.getSelectedKelas().getTotalKBM());
 
-                startActivity(i);
+//                startActivity(i);
                 break;
             case R.id.et_periode:
-                setDateRangePicker();
+
+                new MaterialDialog.Builder(getActivityNonNull())
+                        .title("Pilih Periode")
+                        .items(R.array.tglPeriodeArray)
+//                        .itemsCallback((dialog, inView, which, text) -> periodeChoise(which))
+                        .itemsCallbackSingleChoice(0, (dialog, inNiew, which, text) -> {
+                            periodeChoise(which);
+                            return true; // allow selection
+                        })
+                        .positiveText("Pilih")
+                        .show();
                 break;
         }
+    }
+
+    private void periodeChoise(int which) {
+        switch (which) {
+            case 0:
+                break;
+            default:
+                setDateRangePicker();
+        }
+
+//                refreshDataList()
     }
 
     @Override
@@ -377,7 +391,7 @@ public class SttKelasFragment extends Fragment implements View.OnClickListener, 
     public void onDestroy() {
         super.onDestroy();
         //cancel retrofit
-        if (mCallKelas != null) mCallKelas.cancel();
+        if (mCallPembinaan != null) mCallPembinaan.cancel();
     }
 
     @Override

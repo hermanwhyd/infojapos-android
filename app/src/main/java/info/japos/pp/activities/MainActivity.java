@@ -44,6 +44,7 @@ import info.japos.pp.constants.AppConstant;
 import info.japos.pp.fragments.AboutDialog;
 import info.japos.pp.fragments.JadwalPresensiFragment;
 import info.japos.pp.fragments.SttKelasFragment;
+import info.japos.pp.fragments.SttPembinaanFragment;
 import info.japos.pp.helper.SessionManager;
 import info.japos.pp.models.ApplicationInfo.ApplicationInfo;
 import info.japos.pp.models.ApplicationInfo.VersionInfo;
@@ -190,6 +191,8 @@ public class MainActivity extends AppCompatActivity{
                 .addDrawerItems(
                         new PrimaryDrawerItem().withName("Presensi").withIcon(FontAwesome.Icon.faw_leanpub).withIdentifier(11),
                         new ExpandableBadgeDrawerItem().withName("Statistik Kehadiran").withIcon(FontAwesome.Icon.faw_chart_pie).withIdentifier(20).withSelectable(false).withSubItems(
+                            new SecondaryDrawerItem().withName("Pembina").withLevel(2).withIcon(FontAwesome.Icon.faw_chart_bar1).withIdentifier(24),
+                            new SecondaryDrawerItem().withName("Lv Pembinaan").withLevel(2).withIcon(FontAwesome.Icon.faw_chart_bar1).withIdentifier(23),
                             new SecondaryDrawerItem().withName("Kelas").withLevel(2).withIcon(FontAwesome.Icon.faw_chart_bar1).withIdentifier(21),
                             new SecondaryDrawerItem().withName("Peserta").withLevel(2).withIcon(FontAwesome.Icon.faw_user1).withIdentifier(22).withSelectable(false)
                         ),
@@ -212,6 +215,8 @@ public class MainActivity extends AppCompatActivity{
                         } else if (drawerItem.getIdentifier() == 22) {
                             MessageBoxDialog.Show(this, "Info", "Halaman ini sedang dalam pengembangan.");
 //                            fragment = new SttPesertaFragment();
+                        } else if (drawerItem.getIdentifier() == 23) {
+                            fragment = new SttPembinaanFragment();
                         } else if (drawerItem.getIdentifier() == 31) {
                             performLogout();
                         } else if (drawerItem.getIdentifier() == 32) {

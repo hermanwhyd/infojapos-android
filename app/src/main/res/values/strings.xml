@@ -62,11 +62,21 @@
         <item>Acara Sekolah/Bimbel/Sejenisnya</item>
         <item>Pekerjaan</item>
     </string-array>
+
     <string-array name="presensi_sortby">
         <item>Nama Lengkap</item>
         <item>Nama Panggilan</item>
         <item>Kelompok</item>
         <item>Gender</item>
+    </string-array>
+
+    <string-array name="tglPeriodeArray">
+        <item>Periode Sekarang</item>
+        <item>Periode Kemarin</item>
+        <item>3 Bulan Terakhir</item>
+        <item>6 Bulan Terakhir</item>
+        <item>1 Tahun Terakhir</item>
+        <item>Pilih Tanggal Manual</item>
     </string-array>
 
     <!--Autodetect Date-->
